@@ -1,0 +1,29 @@
+# ========== ~/.zshrc ==========
+# Safety: don't clobber files with ">"
+set -o noclobber
+export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+# Path to your Oh My Zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time Oh My Zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+ZSH_THEME="robbyrussell"
+ZSH_THEME_RANDOM_CANDIDATES=(agnoster bira candy robbyrussell)
+plugins=(git z zsh-autosuggestions zsh-syntax-highlighting)
+# Open IntelliJ from terminal
+if command -v intellij-idea-ultimate >/dev/null 2>&1; then
+  # Use the snap shim
+  idea() {
+    local target="${1:-.}"
+    nohup intellij-idea-ultimate "$target" >/dev/null 2>&1 &
+  }
+elif [ -x /snap/intellij-idea-ultimate/current/bin/idea ]; then
+  # Fallback to the snap's idea script
+  idea() {
+    local target="${1:-.}"
+    nohup /snap/intellij-idea-ultimate/current/bin/idea "$target" >/dev/null 2>&1 &
+  }
+fi
+alias second-brain='cd /mnt/c/Users/vebjorf/Documents/second-brain'
+source $ZSH/oh-my-zsh.sh
