@@ -10,7 +10,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="robbyrussell"
 ZSH_THEME_RANDOM_CANDIDATES=(agnoster bira candy robbyrussell)
-plugins=(git z zsh-autosuggestions zsh-syntax-highlighting)
+plugins=(git gradle z zsh-autosuggestions zsh-syntax-highlighting)
 # Open IntelliJ from terminal
 if command -v intellij-idea-ultimate >/dev/null 2>&1; then
   # Use the snap shim
@@ -26,4 +26,9 @@ elif [ -x /snap/intellij-idea-ultimate/current/bin/idea ]; then
   }
 fi
 alias second-brain='cd /mnt/c/Users/vebjorf/Documents/second-brain'
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
 source $ZSH/oh-my-zsh.sh
