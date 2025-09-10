@@ -1,7 +1,9 @@
 # ========== ~/.zshrc ==========
 # Safety: don't clobber files with ">"
 set -o noclobber
-export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+export PATH=/home/linuxbrew/.linuxbrew/bin:$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
+export EDITOR=vim
+export VISUAL=vim
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 # Set name of the theme to load --- if set to "random", it will
