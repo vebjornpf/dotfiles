@@ -28,7 +28,7 @@ elif [ -x /snap/intellij-idea-ultimate/current/bin/idea ]; then
   }
 fi
 alias second-brain='cd /mnt/c/Users/vebjorf/Documents/second-brain'
-
+export GCP_OAUTH_TOKEN="$(gcloud auth print-access-token 2>/dev/null)"
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
