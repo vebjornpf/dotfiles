@@ -14,21 +14,8 @@ ZSH_THEME="catppuccin"
 CATPPUCCIN_FLAVOR="macchiato"
 
 plugins=(git gradle z zsh-autosuggestions zsh-syntax-highlighting)
-# Open IntelliJ from terminal
-if command -v intellij-idea-ultimate >/dev/null 2>&1; then
-  # Use the snap shim
-  idea() {
-    local target="${1:-.}"
-    nohup intellij-idea-ultimate "$target" >/dev/null 2>&1 &
-  }
-elif [ -x /snap/intellij-idea-ultimate/current/bin/idea ]; then
-  # Fallback to the snap's idea script
-  idea() {
-    local target="${1:-.}"
-    nohup /snap/intellij-idea-ultimate/current/bin/idea "$target" >/dev/null 2>&1 &
-  }
-fi
-alias second-brain='cd /mnt/c/Users/vebjorf/Documents/second-brain'
+
+
 export GCP_OAUTH_TOKEN="$(gcloud auth print-access-token 2>/dev/null)"
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
