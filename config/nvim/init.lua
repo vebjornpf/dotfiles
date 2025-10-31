@@ -1,3 +1,5 @@
+require("config.lazy")
+
 -- Basic UI
 vim.opt.number = true                 -- show line numbers
 vim.opt.relativenumber = true         -- relative line numbers
@@ -17,3 +19,7 @@ vim.opt.incsearch = true              -- show matches as you type
 
 -- Optional: keep 8 lines visible above/below cursor
 vim.opt.scrolloff = 8
+
+-- Key Bindings
+vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>")
+vim.keymap.set("n", "<leader>fe", "<cmd>NvimTreeFocus<cr>", { desc = "Focus file tree" })
