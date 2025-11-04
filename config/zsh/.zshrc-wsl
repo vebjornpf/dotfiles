@@ -64,4 +64,10 @@ endpoints() {
 
 # Add git aliases
 
+_dotfiles_zsh_dir=${${(%):-%N}:A:h}
+if [[ -f "${_dotfiles_zsh_dir}/git-aliases.zsh" ]]; then
+  source "${_dotfiles_zsh_dir}/git-aliases.zsh"
+fi
+unset _dotfiles_zsh_dir
+
 source $ZSH/oh-my-zsh.sh
