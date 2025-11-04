@@ -109,10 +109,69 @@ gmkw() {
   cd "$dir" || return
 }
 
-gsf() {
+#gs() {
+#  local branch
+#  branch=$(git branch --all --color=always | grep -v '/HEAD' | sed 's/^..//' | fzf --ansi --preview "git log --oneline --color=always --abbrev-commit --decorate --graph {}")
+#  branch=$(echo "$branch" | xargs)  # trim whitespace
+#  [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
+#}
+
+
+
+# Clever way of switching between branhes
+gfs() {
+  git fetch --all --prune >/dev/null 2>&1
   local branch
-  branch=$(git branch --all --color=always | grep -v '/HEAD' | sed 's/^..//' | fzf --ansi --preview "git log --oneline --color=always --abbrev-commit --decorate --graph {}")
-  branch=$(echo "$branch" | xargs)  # trim whitespace
+  branch=$(git branch --color=always | grep -v '/HEAD' | sed 's/^..//' \
+    | fzf --ansi \
+          --bind "ctrl-d:execute(
+            if [[ {} != 'main' && {} != 'master' ]]; then
+              git branch -D {} >/dev/null 2>&1 && echo '🗑️  Deleted branch: {}' >&2
+            else
+              echo '⚠️  Cannot delete protected branch: {}' >&2
+            fi
+          )+reload(git branch --color=always | grep -v '/HEAD' | sed 's/^..//')" \
+          --preview "
+            b='{}'
+            b_clean=\${b#remotes/origin/}
+            
+            echo '🪵 Last 3 commits:'
+            git log -3 --pretty=format:'%C(yellow)%h%Creset %Cgreen%cr%Creset %Cblue%an%Creset %s' \"\$b\"
+            echo
+            echo
+
+            echo '🕒 Days since last commit:'
+            last_commit_date=\$(git log -1 --format=%ci \"\$b\" 2>/dev/null)
+            if [[ -n \"\$last_commit_date\" ]]; then
+              days=\$(( ( \$(date +%s) - \$(date -d \"\$last_commit_date\" +%s) ) / 86400 ))
+              echo \"  \$days days ago\"
+            else
+              echo '  (no commits)'
+            fi
+            echo
+
+            echo '🌿 Branch info:'
+            tracking=\$(git for-each-ref --format='%(upstream:short)' \"refs/heads/\$b_clean\")
+            if [[ -n \"\$tracking\" ]]; then
+              echo \"  Tracking: \$tracking\"
+              if git show-ref --verify --quiet \"refs/remotes/\$tracking\"; then
+                echo '  ✅ Remote branch exists'
+              else
+                echo '  ⚠️ Remote branch no longer exists'
+              fi
+            else
+              echo '  🚫 Not tracking a remote branch'
+            fi
+            echo
+
+            echo '📊 Comparison to origin/main:'
+            ahead=\$(git rev-list --count origin/main..\$b 2>/dev/null)
+            behind=\$(git rev-list --count \$b..origin/main 2>/dev/null)
+            echo \"  Ahead: \$ahead commits\"
+            echo \"  Behind: \$behind commits\"
+          ")
+
+  branch=$(echo "$branch" | xargs)
   [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
 }
 
