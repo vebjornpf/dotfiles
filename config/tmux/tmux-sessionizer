@@ -3,8 +3,20 @@
 if [[ $# -eq 1 ]]; then
     selected=$1
 else
-    selected=$( (find ~/git ~/ -mindepth 1 -maxdepth 1 -type d -not -path '*/.*') | fzf )
+    selected=$(
+        find ~/git ~/ -mindepth 1 -maxdepth 1 -type d -not -path '*/.*' |
+        while read -r dir; do
+            name=$(basename "$dir")
+            if [[ "$name" == *-wk ]]; then
+                # likely a worktree (e.g., repo-branchname)
+                printf "\033[33m%s\033[0m\n" "$dir"   # yellow
+            else
+                printf "\033[36m%s\033[0m\n" "$dir"   # cyan
+            fi
+        done | fzf --ansi
+    )
 fi
+
 
 if [[ -z $selected ]]; then
     exit 0
