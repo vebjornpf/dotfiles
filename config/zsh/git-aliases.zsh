@@ -124,6 +124,7 @@ gfs() {
   local branch
   branch=$(git branch --color=always | grep -v '/HEAD' | sed 's/^..//' \
     | fzf --ansi \
+          --preview-window=wrap \
           --bind "ctrl-d:execute(
             if [[ {} != 'main' && {} != 'master' ]]; then
               git branch -D {} >/dev/null 2>&1 && echo '🗑️  Deleted branch: {}' >&2
@@ -134,9 +135,10 @@ gfs() {
           --preview "
             b='{}'
             b_clean=\${b#remotes/origin/}
-            
+
             echo '🪵 Last 3 commits:'
-            git log -3 --pretty=format:'%C(yellow)%h%Creset %Cgreen%cr%Creset %Cblue%an%Creset %s' \"\$b\"
+            # Show 3 latest commits, wrap dynamically to preview width, preserve newlines
+            git log -3 --pretty=format:'%h | %cr | %s' \"\$b\" | fold -s -w \"\$(tput cols)\"
             echo
             echo
 
