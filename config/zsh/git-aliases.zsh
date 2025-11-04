@@ -109,3 +109,10 @@ gmkw() {
   cd "$dir" || return
 }
 
+gsf() {
+  local branch
+  branch=$(git branch --all --color=always | grep -v '/HEAD' | sed 's/^..//' | fzf --ansi --preview "git log --oneline --color=always --abbrev-commit --decorate --graph {}")
+  branch=$(echo "$branch" | xargs)  # trim whitespace
+  [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
+}
+
