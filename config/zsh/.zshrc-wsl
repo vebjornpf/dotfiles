@@ -71,3 +71,4 @@ fi
 unset _dotfiles_zsh_dir
 
 source $ZSH/oh-my-zsh.sh
+eval $(keychain --quiet --eval ~/.ssh/github)
