@@ -115,8 +115,6 @@ gmkw() {
 #  [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
 #}
 
-
-
 # Clever way of switching between branhes
 gfs() {
   git fetch --all --prune >/dev/null 2>&1
@@ -132,6 +130,19 @@ gfs() {
               echo '⚠️  Cannot delete protected branch: {}' >&2
             fi
           )+reload(git branch --color=always | grep -v '/HEAD' | sed 's/^..//')" \
+         --bind "ctrl-b:execute-silent(
+           printf 'New branch name: ' > /dev/tty
+           IFS= read -r new_branch < /dev/tty
+           if [[ -n \$new_branch ]]; then
+             {
+               git switch {} >/dev/null 2>&1 &&
+               git checkout -b \"\$new_branch\" >/dev/null 2>&1 &&
+               echo '✅ Created and switched to branch: '\$new_branch >&2
+             } || {
+               echo '❌ Failed to create or switch branch: '\$new_branch > /dev/tty
+             }
+           fi
+          )+abort" \
           --preview "
             b='{}'
             b_clean=\${b#remotes/origin/}
@@ -176,6 +187,8 @@ gfs() {
   branch=$(echo "$branch" | xargs)
   [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
 }
+
+
 
 # Interactive PR browser: shows approvals and commits, lets you open or merge PRs
 ghpr() {
