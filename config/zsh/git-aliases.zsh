@@ -62,7 +62,6 @@ alias gcp='git cherry-pick'
 alias grv='git revert' 
 
 # GitHub
-alias ghpr='gh pr view'
 alias ghprc='gh pr create'
 alias ghprms='gh pr merge --squash'
 alias ghprm='gh pr merge -s -d --auto'
@@ -176,5 +175,37 @@ gfs() {
 
   branch=$(echo "$branch" | xargs)
   [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
+}
+
+# Interactive PR browser: shows approvals and commits, lets you open or merge PRs
+ghpr() {
+  gh pr list --limit 50 --json number,title,reviewDecision \
+    --template '{{range .}}{{printf "%-6.0f\t[%s]\t%s\n" .number .reviewDecision .title}}{{end}}' |
+    column -t -s $'\t' |
+    fzf --ansi --prompt="Select PR > " \
+        --preview '
+          gh pr view {1} --json title,author,reviewDecision,reviews,commits \
+            --template "
+Title: {{.title}}
+Author: {{.author.login}}
+Review decision: {{.reviewDecision}}
+
+{{- range .reviews}}{{if eq .state \"APPROVED\"}}Approved by: {{.author.login}}
+{{end}}{{end}}
+
+Commits:
+{{- range .commits}}
+  {{- if .oid}}
+  • {{slice .oid 0 7}}  {{.messageHeadline}}
+  {{- else}}
+  • (no hash)  {{.messageHeadline}}
+  {{- end}}
+{{- end}}
+"' \
+        --bind 'ctrl-w:execute-silent(gh pr view {1} --web)+abort' \
+        --bind 'ctrl-m:execute-silent(
+          gh pr merge {1} --squash --delete-branch --auto &&
+          echo \"✅ Squash-merged PR {1}\" > /dev/tty
+        )+abort'
 }
 
