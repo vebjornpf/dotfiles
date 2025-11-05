@@ -121,6 +121,7 @@ gmkw() {
 # Clever way of switching between branhes
 gfs() {
   git fetch --all --prune >/dev/null 2>&1
+  git update-ref refs/heads/main refs/remotes/origin/main
   local branch
   branch=$(git branch --color=always | grep -v '/HEAD' | sed 's/^..//' \
     | fzf --ansi \
