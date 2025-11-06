@@ -28,6 +28,18 @@ alias gpr='git pull --rebase'
 alias grbi='git rebase -i'
 alias grba='git rebase --abort'
 alias grbc='git rebase --continue'
+gri() {
+  local target
+  if [[ -z "$1" ]]; then
+    target="HEAD^"
+  elif [[ "$1" == <-> ]]; then
+    target="HEAD~$1"
+  else
+    target="$1"
+  fi
+
+  git rebase -i "$target"
+}
 
 # Branch/Checkout
 alias gb='git branch'
@@ -221,4 +233,3 @@ Commits:
           echo \"✅ Squash-merged PR {1}\" > /dev/tty
         )+abort'
 }
-
