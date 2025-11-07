@@ -223,42 +223,6 @@ ghpr() {
         \"# PR \(.number): \(.title)\n\" +
         \"Author: \(.author.login)\n\" +
         \"Review decision: \(.reviewDecision)\n\n\" +
-
-        \"Commits:\n\" +
-        (if .commits | length > 0
-         then (.commits | map(\"  - \" + .messageHeadline + \" (\" + (.oid[0:8]) + \")\") | join(\"\n\"))
-         else \"  (none)\"
-         end) +
-
-        \"\n\nFiles changed:\n\" +
-        (if .files | length > 0
-         then (.files | map(
-           \"  - \" +
-           (if .additions > 0 then \"+\" + (.additions|tostring) + \" \" else \"\" end) +
-           (if .deletions > 0 then \"-\" + (.deletions|tostring) + \" \" else \"\" end) +
-           .path
-         ) | join(\"\n\"))
-         else \"  (none)\"
-         end) +
-
-        \"\n\nStatus checks:\n\" +
-        (if .statusCheckRollup | length > 0
-         then (.statusCheckRollup | map(\"  - \" + .context + \": \" + .state) | join(\"\n\")) 
-         else \"  (none)\"
-         end) +
-
-        \"\n\n-----------------------------\n\" +
-        \"Shortcuts:\n\" +
-        \"  Enter   →  Checkout PR\n\" +
-        \"  Ctrl-O  →  View diff in nvim\n\" +
-        \"  Ctrl-W  →  Open in browser\n\" +
-        \"  Ctrl-A  →  Approve PR\n\" +
-        \"  Ctrl-M  →  Merge (squash + delete branch)\n\"
-      "
-    ' \
-    --bind 'ctrl-w:execute-silent(
-      num=$(echo {} | cut -f1);
-      gh pr view "$num" --web
-    )' \
+    ' 
 }
 
