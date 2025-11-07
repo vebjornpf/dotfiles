@@ -199,7 +199,7 @@ gfs() {
   [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
 }
 
-
+# Simple comment for testing
 
 # Interactive PR browser: shows approvals and commits, lets you open or merge PRs
 ghpr() {
