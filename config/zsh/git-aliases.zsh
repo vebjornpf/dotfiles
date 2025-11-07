@@ -43,8 +43,7 @@ gri() {
 
 # Branch/Checkout
 alias gb='git branch'
-alias gco='git checkout'
-alias gcb='git checkout -b'
+alias gcob='git checkout -b'
 alias gcom='git checkout main'
 
 # Stash
@@ -204,52 +203,62 @@ gfs() {
 
 # Interactive PR browser: shows approvals and commits, lets you open or merge PRs
 ghpr() {
-  gh pr list --limit 50 --json number,title,reviewDecision \
-    --template '{{range .}}{{printf "%-6.0f\t[%s]\t%s\n" .number .reviewDecision .title}}{{end}}' |
-    column -t -s $'\t' |
-    fzf --ansi --prompt="Select PR > " \
-        --preview '
-          gh pr view {1} --json title,author,reviewDecision,reviews,commits \
-            --template "
-Title: {{.title}}
-Author: {{.author.login}}
-Review decision: {{.reviewDecision}}
-
-{{- range .reviews}}{{if eq .state \"APPROVED\"}}Approved by: {{.author.login}}
-{{end}}{{end}}
-
-Commits:
-{{- range .commits}}
-  {{- if .oid}}
-  • {{slice .oid 0 7}}  {{.messageHeadline}}
-  {{- else}}
-  • (no hash)  {{.messageHeadline}}
-  {{- end}}
-{{- end}}
-"' \
-        --bind 'ctrl-w:execute-silent(gh pr view {1} --web)+abort' \
-        --bind 'ctrl-m:execute-silent(
-          gh pr merge {1} --squash --delete-branch --auto &&
-          echo \"✅ Squash-merged PR {1}\" > /dev/tty
-        )+abort'
-}
-
-tes() {
   prs_json="$(gh pr list --limit 30 \
-    --json number,title,author,reviewDecision,commits,reviews,statusCheckRollup)"
-  
+    --json number,title,author,reviewDecision,commits,reviews,statusCheckRollup,files)"
+
   prs_keys="$(echo "$prs_json" |
     jq 'map({key: (.number|tostring), value: .}) | from_entries')"
-  
+
   prs_list="$(echo "$prs_json" |
     jq -r '.[] | "\(.number)\t[\(.reviewDecision)]\t\(.author.login)\t\(.title)"')"
 
   export prs_keys
 
-  echo "$prs_list" | fzf --ansi --prompt=:"Select PR > " \
+  echo "$prs_list" | fzf --ansi --prompt="Select PR > " \
     --delimiter='\t' --with-nth=1,2,3,4 \
     --preview '
-        echo "hey"
-    '
+      num=$(echo {} | cut -f1)
+      echo "$prs_keys" | jq -r "
+        .\"$num\" |
+        \"# PR \(.number): \(.title)\n\" +
+        \"Author: \(.author.login)\n\" +
+        \"Review decision: \(.reviewDecision)\n\n\" +
+
+        \"Commits:\n\" +
+        (if .commits | length > 0
+         then (.commits | map(\"  - \" + .messageHeadline + \" (\" + (.oid[0:8]) + \")\") | join(\"\n\"))
+         else \"  (none)\"
+         end) +
+
+        \"\n\nFiles changed:\n\" +
+        (if .files | length > 0
+         then (.files | map(
+           \"  - \" +
+           (if .additions > 0 then \"+\" + (.additions|tostring) + \" \" else \"\" end) +
+           (if .deletions > 0 then \"-\" + (.deletions|tostring) + \" \" else \"\" end) +
+           .path
+         ) | join(\"\n\"))
+         else \"  (none)\"
+         end) +
+
+        \"\n\nStatus checks:\n\" +
+        (if .statusCheckRollup | length > 0
+         then (.statusCheckRollup | map(\"  - \" + .context + \": \" + .state) | join(\"\n\")) 
+         else \"  (none)\"
+         end) +
+
+        \"\n\n-----------------------------\n\" +
+        \"Shortcuts:\n\" +
+        \"  Enter   →  Checkout PR\n\" +
+        \"  Ctrl-O  →  View diff in nvim\n\" +
+        \"  Ctrl-W  →  Open in browser\n\" +
+        \"  Ctrl-A  →  Approve PR\n\" +
+        \"  Ctrl-M  →  Merge (squash + delete branch)\n\"
+      "
+    ' \
+    --bind 'ctrl-w:execute-silent(
+      num=$(echo {} | cut -f1);
+      gh pr view "$num" --web
+    )' \
 }
 
