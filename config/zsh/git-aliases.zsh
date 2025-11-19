@@ -205,24 +205,19 @@ gfs() {
 ghpr() {
   prs_json="$(gh pr list --limit 30 \
     --json number,title,author,reviewDecision,commits,reviews,statusCheckRollup,files)"
+  
+  prs_json="${prs_json//\\n/ }"
+  prs_keys="$(echo "$prs_json" \
+    | jq 'map({key: (.number|tostring), value: .}) | from_entries')"
 
-  prs_keys="$(echo "$prs_json" |
-    jq 'map({key: (.number|tostring), value: .}) | from_entries')"
-
-  prs_list="$(echo "$prs_json" |
+  prs_list="$(
+    echo "$prs_json" |
     jq -r '.[] | "\(.number)\t[\(.reviewDecision)]\t\(.author.login)\t\(.title)"')"
 
   export prs_keys
 
   echo "$prs_list" | fzf --ansi --prompt="Select PR > " \
     --delimiter='\t' --with-nth=1,2,3,4 \
-    --preview '
-      num=$(echo {} | cut -f1)
-      echo "$prs_keys" | jq -r "
-        .\"$num\" |
-        \"# PR \(.number): \(.title)\n\" +
-        \"Author: \(.author.login)\n\" +
-        \"Review decision: \(.reviewDecision)\n\n\" +
-    ' 
+    --preview "bash $HOME/git/dotfiles/config/zsh/scripts/ghpr-preview.sh {1}"
 }
 
