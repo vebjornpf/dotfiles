@@ -78,6 +78,6 @@ if [[ -f "${_dotfiles_zsh_dir}/git-aliases.zsh" ]]; then
   source "${_dotfiles_zsh_dir}/git-aliases.zsh"
 fi
 unset _dotfiles_zsh_dir
-
+export SKIP_OMZ_GIT_ALIASES=true
 source $ZSH/oh-my-zsh.sh
 eval $(keychain --quiet --eval ~/.ssh/github)
