@@ -28,18 +28,6 @@ alias gpr='git pull --rebase'
 alias grbi='git rebase -i'
 alias grba='git rebase --abort'
 alias grbc='git rebase --continue'
-gri() {
-  local target
-  if [[ -z "$1" ]]; then
-    target="HEAD^"
-  elif [[ "$1" == <-> ]]; then
-    target="HEAD~$1"
-  else
-    target="$1"
-  fi
-
-  git rebase -i "$target"
-}
 
 # Branch/Checkout
 alias gb='git branch'
@@ -119,12 +107,6 @@ gmkw() {
   cd "$dir" || return
 }
 
-#gs() {
-#  local branch
-#  branch=$(git branch --all --color=always | grep -v '/HEAD' | sed 's/^..//' | fzf --ansi --preview "git log --oneline --color=always --abbrev-commit --decorate --graph {}")
-#  branch=$(echo "$branch" | xargs)  # trim whitespace
-#  [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
-#}
 
 # Clever way of switching between branhes
 gfs() {
@@ -200,24 +182,4 @@ gfs() {
 }
 
 
-
-# Interactive PR browser: shows approvals and commits, lets you open or merge PRs
-ghpr() {
-  prs_json="$(gh pr list --limit 30 \
-    --json number,title,author,reviewDecision,commits,reviews,statusCheckRollup,files)"
-  
-  prs_json="${prs_json//\\n/ }"
-  prs_keys="$(echo "$prs_json" \
-    | jq 'map({key: (.number|tostring), value: .}) | from_entries')"
-
-  prs_list="$(
-    echo "$prs_json" |
-    jq -r '.[] | "\(.number)\t[\(.reviewDecision)]\t\(.author.login)\t\(.title)"')"
-
-  export prs_keys
-
-  echo "$prs_list" | fzf --ansi --prompt="Select PR > " \
-    --delimiter='\t' --with-nth=1,2,3,4 \
-    --preview "bash $HOME/git/dotfiles/config/zsh/scripts/ghpr-preview.sh {1}"
-}
 
