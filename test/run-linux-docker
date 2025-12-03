@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Build an image that includes this repo, then drop you into a shell inside it.
+set -euo pipefail
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "docker is required to run this script."
+  exit 1
+fi
+
+# Resolve repo root (script lives in test/).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+IMAGE="${IMAGE:-dotfiles-test:latest}"
+
+docker build -t "$IMAGE" -f "$REPO_ROOT/test/Dockerfile" "$REPO_ROOT"
+docker run --rm -it "$IMAGE"

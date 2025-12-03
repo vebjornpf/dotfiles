@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Stow every package under ./config to the appropriate target.
+cd config
+stow -t "$HOME" "tmux"
+stow -t "$HOME" "nvim"
+stow -t "$HOME" "zsh"
+

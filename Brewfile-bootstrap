@@ -1,0 +1,8 @@
+brew "stow"
+brew "neovim"
+brew "tmux"
+brew "fzf"
+brew "gh"
+
+cask "codex"
+cask "docker"

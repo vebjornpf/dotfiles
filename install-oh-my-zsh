@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Install Oh My Zsh without touching existing zsh config.
+set -euo pipefail
+
+if [ -d "$HOME/.oh-my-zsh" ]; then
+  echo "Oh My Zsh already installed at $HOME/.oh-my-zsh"
+else
+  echo "Installing Oh My Zsh..."
+  KEEP_ZSHRC=yes CHSH=no RUNZSH=no \
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+# Add any follow-up steps below (e.g., plugin installs).
+ZSH_CUSTOM=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}
+
+clone_if_missing() {
+  local repo=$1
+  local dest=$2
+  if [ -d "$dest/.git" ] || [ -d "$dest" ]; then
+    echo "Already present: $dest"
+    return
+  fi
+  git clone "$repo" "$dest"
+}
+
+clone_if_missing https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+clone_if_missing https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
