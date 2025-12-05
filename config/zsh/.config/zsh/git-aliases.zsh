@@ -22,7 +22,7 @@ alias gpf='git push --force'
 alias gf='git fetch'
 alias gfa='git fetch --all'
 alias gpl='git pull'
-alias gpr='git pull --rebase'
+alias gplr='git pull --rebase'
 
 # Rebase
 alias grbi='git rebase -i'
@@ -64,6 +64,7 @@ alias grv='git revert'
 alias ghprc='gh pr create'
 alias ghprms='gh pr merge --squash'
 alias ghprm='gh pr merge -s -d --auto'
+alias ghrw='gh repo view --web'
 
 
 # Create a new Git worktree outside the current repo
