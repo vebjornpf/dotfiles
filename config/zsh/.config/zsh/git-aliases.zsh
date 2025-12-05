@@ -25,12 +25,14 @@ alias gpl='git pull'
 alias gplr='git pull --rebase'
 
 # Rebase
+alias grb='git rebase'
 alias grbi='git rebase -i'
 alias grba='git rebase --abort'
 alias grbc='git rebase --continue'
 
 # Branch/Checkout
 alias gb='git branch'
+alias gco='git checkout'
 alias gcob='git checkout -b'
 alias gcom='git checkout main'
 
