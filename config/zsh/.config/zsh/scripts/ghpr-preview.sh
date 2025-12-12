@@ -1,4 +1,3 @@
-num="$1"
-pr=$(jq -r ".\"$num\"" <<<"$prs_keys")
-echo "$num"
-echo "$pr" | jq
+b64="$1"
+echo "$b64" | base64 --decode | jq -C | less -R
+
