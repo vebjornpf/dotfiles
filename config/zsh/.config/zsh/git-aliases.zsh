@@ -68,6 +68,8 @@ alias ghprms='gh pr merge --squash'
 alias ghprm='gh pr merge -s -d --auto'
 alias ghrw='gh repo view --web'
 
+# Worktree
+alias gwtr='git worktree remove'
 
 # Create a new Git worktree outside the current repo
 gmkw() {
