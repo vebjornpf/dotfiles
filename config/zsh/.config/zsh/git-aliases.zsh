@@ -7,6 +7,7 @@ alias gs='git status'
 alias ga='git add'
 alias gaa='git add .'
 alias gap='git add -p'
+alias gam='git add -u'
 
 # Commit
 alias gc='git commit'
