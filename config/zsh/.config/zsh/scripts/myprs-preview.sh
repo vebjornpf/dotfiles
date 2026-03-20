@@ -1,11 +1,17 @@
-pr_b64="$1"
+payload="$1"
 
-if [[ -z "$pr_b64" ]]; then
+if [[ -z "$payload" ]]; then
   echo "Missing PR payload"
   exit 1
 fi
 
-printf '%s' "$pr_b64" | base64 --decode | jq -r '
+if [[ "$payload" == \{* ]]; then
+  pr_json="$payload"
+else
+  pr_json="$(printf '%s' "$payload" | base64 --decode)"
+fi
+
+printf '%s' "$pr_json" | jq -r '
   def c(code; s): "\u001b[" + code + "m" + s + "\u001b[0m";
   def bold(s): c("1"; s);
   def dim(s): c("2"; s);
