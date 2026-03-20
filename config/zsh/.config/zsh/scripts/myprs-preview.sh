@@ -1,59 +1,45 @@
-payload="$1"
+repo="$1"
+number="$2"
+state="$3"
+title="$4"
+updated="$5"
+url="$6"
+author="$7"
+created="$8"
+comments="$9"
+locked="${10}"
+labels="${11}"
+body_b64="${12}"
 
-if [[ -z "$payload" ]]; then
-  echo "Missing PR payload"
-  exit 1
+if [[ -n "$body_b64" ]]; then
+  body="$(printf '%s' "$body_b64" | base64 --decode 2>/dev/null)"
 fi
 
-if [[ "$payload" == \{* ]]; then
-  pr_json="$payload"
+wrap_width="${FZF_PREVIEW_COLUMNS:-80}"
+if [[ "$wrap_width" -lt 20 ]]; then
+  wrap_width=80
+fi
+
+state_color="$state"
+if [[ "$state" == "DRAFT" ]]; then
+  state_color=$'\033[33m'"$state"$'\033[0m'
+elif [[ "$state" == "OPEN" ]]; then
+  state_color=$'\033[32m'"$state"$'\033[0m'
+fi
+
+printf '\033[1m%s\033[0m\n' "$title"
+printf '\033[2m%s#%s\033[0m\n\n' "$repo" "$number"
+printf 'state    %b\n' "$state_color"
+printf 'author   %s\n' "$author"
+printf 'updated  %s\n' "$updated"
+printf 'created  %s\n' "$created"
+printf 'comments %s\n' "$comments"
+printf 'locked   %s\n' "$locked"
+printf 'labels   %s\n' "$labels"
+printf 'url      %s\n' "$url"
+printf '\n\033[36mBody\033[0m\n'
+if [[ -n "$body" ]]; then
+  printf '%s\n' "$body" | fold -s -w "$wrap_width"
 else
-  pr_json="$(printf '%s' "$payload" | base64 --decode)"
+  printf '\033[2m(no body)\033[0m\n'
 fi
-
-printf '%s' "$pr_json" | jq -r '
-  def c(code; s): "\u001b[" + code + "m" + s + "\u001b[0m";
-  def bold(s): c("1"; s);
-  def dim(s): c("2"; s);
-  def cyan(s): c("36"; s);
-  def yellow(s): c("33"; s);
-  def green(s): c("32"; s);
-  def section(s): "\n" + cyan(s);
-  def fmt_date:
-    if . == null then "-"
-    else sub("T"; " ") | sub("Z$"; "")
-    end;
-  def fmt_state:
-    if .isDraft then yellow("DRAFT")
-    elif (.state | ascii_upcase) == "OPEN" then green("OPEN")
-    else (.state | ascii_upcase)
-    end;
-  def fmt_labels:
-    if (.labels | length) > 0 then
-      (.labels | map(.name) | join(", "))
-    else
-      dim("none")
-    end;
-  def fmt_body:
-    (.body // "")
-    | gsub("\r\n"; "\n")
-    | if length > 0 then . else dim("(no body)") end;
-
-  . as $p |
-  [
-    bold($p.title),
-    dim($p.repository.nameWithOwner + "#" + ($p.number | tostring)),
-    "",
-    "state    " + fmt_state,
-    "author   " + ($p.author.name // $p.author.login) + " (" + $p.author.login + ")",
-    "updated  " + ($p.updatedAt | fmt_date),
-    "created  " + ($p.createdAt | fmt_date),
-    "comments " + ($p.commentsCount | tostring),
-    "locked   " + (if $p.isLocked then "yes" else "no" end),
-    "labels   " + fmt_labels,
-    "url      " + $p.url,
-    section("Body"),
-    ($p | fmt_body)
-  ]
-  | .[]
-  '

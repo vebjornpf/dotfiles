@@ -21,7 +21,7 @@ printf '%s' "$pr_json" | jq -r --arg repo "$repo" --arg number "$number" '
   def yellow(s): c("33"; s);
   def red(s): c("31"; s);
   def state_color(s):
-    if s == "MERGEABLE" or s == "OPEN" or s == "APPROVED" or s == "SUCCESS" then green(s)
+    if s == "MERGEABLE" or s == "OPEN" or s == "APPROVED" or s == "SUCCESS" or s == "CLEAN" then green(s)
     elif s == "UNKNOWN" or s == "PENDING" or s == "REVIEW_REQUIRED" then yellow(s)
     else red(s)
     end;
