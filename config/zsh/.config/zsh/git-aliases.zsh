@@ -67,7 +67,7 @@ alias grv='git revert'
 alias ghprc='gh pr create'
 alias ghprms='gh pr merge --squash'
 alias ghprm='gh pr merge -s -d --auto'
-alias ghrw='gh repo view --web'
+alias gho='gh repo view --web'
 
 # Worktree
 alias gwtr='git worktree remove'
@@ -186,6 +186,5 @@ gfs() {
   branch=$(echo "$branch" | xargs)
   [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
 }
-
 
 
