@@ -6,7 +6,7 @@ if [[ -z "$repo" || -z "$number" ]]; then
   exit 1
 fi
 
-if ! pr_json="$(gh pr view "$number" --repo "$repo" --json title,url,isDraft,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup 2>/dev/null)"; then
+if ! pr_json="$(gh pr view "$number" --repo "$repo" --json title,url,isDraft,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup,files 2>/dev/null)"; then
   echo "Unable to load merge details for $repo#$number" >&2
   exit 1
 fi
@@ -43,14 +43,18 @@ printf '%s' "$pr_json" | jq -r --arg repo "$repo" --arg number "$number" '
        | "  - " + .context + ": " + state_color((.state // "UNKNOWN") | ascii_upcase))
      else
       "  - none"
+     end),    
+    "",
+    "Files changed:",
+    (if ($p.files | length) > 0 then
+      ($p.files[]
+       | "  - " + .path + " (+" + (.additions | tostring) + " / -" + (.deletions | tostring) + ")")
+     else
+      "  - none"
      end),
     "",
-    dim("Press m to merge, any other key to return")
+    dim("Press any key to return")
   ] | .[]'
 
 IFS= read -rsn1 key
 printf '\n'
-
-if [[ "$key" == "m" || "$key" == "M" ]]; then
-  gh pr merge --repo "$repo" --squash "$number"
-fi
