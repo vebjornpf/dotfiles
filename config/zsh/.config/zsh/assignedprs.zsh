@@ -22,5 +22,5 @@ prs() {
     --bind 'alt-a:execute-silent(gh pr review {3} --repo {2} --approve)+reload('"$fetch_cmd"')' \
     --bind 'alt-r:reload('"$fetch_cmd"')' \
     --bind 'alt-m:execute-silent(gh pr merge --repo {2} --squash {3})+reload('"$fetch_cmd"')' \
-    --bind 'alt-i:execute(bash '"$ZDOTDIR"'/scripts/myprs-merge-info.sh {2} {3})+reload('"$fetch_cmd"')'
+    --bind 'alt-i:execute(bash '"$ZDOTDIR"'/scripts/myprs-merge-info.sh {2} {3})'
 }

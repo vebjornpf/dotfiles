@@ -19,7 +19,7 @@ myprs() {
     --preview-window=up:75% \
     --bind 'alt-o:execute-silent(gh pr view {3} --repo {2} --web)' \
     --bind 'alt-c:execute-silent(printf "%s" {7} | xclip -selection clipboard)' \
-    --bind 'alt-d:execute(bash '"$ZDOTDIR"'/scripts/myprs-toggle-draft.sh {2} {3} {4})+reload('"$fetch_cmd"')' \
+    --bind 'alt-d:execute(bash '"$ZDOTDIR"'/scripts/myprs-toggle-draft.sh {2} {3} {4})' \
     --bind 'alt-r:reload('"$fetch_cmd"')' \
-    --bind 'alt-i:execute(bash '"$ZDOTDIR"'/scripts/myprs-merge-info.sh {2} {3})+reload('"$fetch_cmd"')'
+    --bind 'alt-i:execute(bash '"$ZDOTDIR"'/scripts/myprs-merge-info.sh {2} {3})'
 }
