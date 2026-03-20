@@ -6,7 +6,7 @@ if [[ -z "$repo" || -z "$number" ]]; then
   exit 1
 fi
 
-if ! pr_json="$(gh pr view "$number" --repo "$repo" --json title,url,isDraft,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup,files 2>/dev/null)"; then
+if ! pr_json="$(gh pr view "$number" --repo "$repo" --json title,url,isDraft,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup,files,createdAt,updatedAt 2>/dev/null)"; then
   echo "Unable to load merge details for $repo#$number" >&2
   exit 1
 fi
@@ -35,6 +35,8 @@ printf '%s' "$pr_json" | jq -r --arg repo "$repo" --arg number "$number" '
     "mergeable          " + state_color(($p.mergeable // "UNKNOWN") | ascii_upcase),
     "merge state        " + state_color(($p.mergeStateStatus // "UNKNOWN") | ascii_upcase),
     "review decision    " + state_color(($p.reviewDecision // "UNKNOWN") | ascii_upcase),
+    "created            " + (($p.createdAt // "-") | sub("T"; " ") | sub("Z$"; "")),
+    "updated            " + (($p.updatedAt // "-") | sub("T"; " ") | sub("Z$"; "")),
     "url                " + $p.url,
     "",
     "Status checks:",
