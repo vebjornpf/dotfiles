@@ -1,17 +1,15 @@
 filters_json="$(printf '%s\n' "$@" | jq -R . | jq -s .)"
 
-search_args=(
-  prs
-  --review-requested=@me
-  --state=open
-)
-
-search_args+=(
-  --json
-  author,body,commentsCount,createdAt,isDraft,isLocked,labels,number,repository,state,title,updatedAt,url
-)
-
-gh search "${search_args[@]}" |
+{
+  gh search prs --review-requested=@me --state=open \
+    --json author,body,commentsCount,createdAt,isDraft,isLocked,labels,number,repository,state,title,updatedAt,url
+  gh search prs --reviewed-by=@me --state=open \
+    --json author,body,commentsCount,createdAt,isDraft,isLocked,labels,number,repository,state,title,updatedAt,url
+} |
+  jq -s '
+    reduce .[]? as $x ([]; . + ($x // []))
+    | unique_by(.repository.nameWithOwner + "#" + (.number | tostring))
+  ' |
   jq -r --argjson filters "$filters_json" '
     .[] |
     (.repository.nameWithOwner) as $repo |
