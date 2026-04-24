@@ -1,25 +1,9 @@
-require("config.lazy")
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
+vim.g.have_nerd_font = false
 
--- Basic UI
-vim.opt.number = true                 -- show line numbers
-vim.opt.relativenumber = true         -- relative line numbers
-vim.cmd('syntax on')                  -- syntax highlighting
-vim.opt.termguicolors = true          -- true color support
-vim.opt.mouse = 'a'                   -- allow mouse scrolling/clicking
-vim.opt.cursorline = true             -- highlight current line
-vim.opt.tabstop = 4                   -- number of spaces tabs count for
-vim.opt.shiftwidth = 4                -- number of spaces to use for each step of (auto)indent
-vim.opt.expandtab = true              -- use spaces instead of tabs
-vim.opt.clipboard = 'unnamedplus'     -- use system clipboard
+require 'config.options'
+require 'config.keymaps'
+require 'config.autocmds'
+require 'config.lazy'
 
--- Optional: better searching
-vim.opt.ignorecase = true             -- case-insensitive search
-vim.opt.smartcase = true              -- but case-sensitive if uppercase letters are used
-vim.opt.incsearch = true              -- show matches as you type
-
--- Optional: keep 8 lines visible above/below cursor
-vim.opt.scrolloff = 8
-
--- Key Bindings
-vim.keymap.set("n", "<leader>e", "<cmd>NvimTreeToggle<cr>")
-vim.keymap.set("n", "<leader>fe", "<cmd>NvimTreeFocus<cr>", { desc = "Focus file tree" })
