@@ -2,8 +2,12 @@ filters_json="$(printf '%s\n' "$@" | jq -R . | jq -s .)"
 
 {
   gh search prs --review-requested=@me --state=open \
+    --limit 100 \
+    --sort updated \
     --json author,body,commentsCount,createdAt,isDraft,isLocked,labels,number,repository,state,title,updatedAt,url
   gh search prs --reviewed-by=@me --state=open \
+    --limit 100 \
+    --sort updated \
     --json author,body,commentsCount,createdAt,isDraft,isLocked,labels,number,repository,state,title,updatedAt,url
 } |
   jq -s '
