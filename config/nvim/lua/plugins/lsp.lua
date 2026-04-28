@@ -59,6 +59,7 @@ return {
       ---@type table<string, vim.lsp.Config>
       local servers = {
         stylua = {},
+        kotlin_lsp = {},
         lua_ls = {
           on_init = function(client)
             client.server_capabilities.documentFormattingProvider = false
@@ -103,4 +104,3 @@ return {
     end,
   },
 }
-

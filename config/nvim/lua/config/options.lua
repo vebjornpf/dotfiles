@@ -1,6 +1,6 @@
 -- Core editor options.
 vim.o.number = true
--- vim.o.relativenumber = true
+vim.o.relativenumber = true
 vim.o.mouse = 'a'
 vim.o.showmode = false
 
@@ -21,4 +21,3 @@ vim.o.inccommand = 'split'
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 vim.o.confirm = true
-

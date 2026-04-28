@@ -1,3 +1,16 @@
+-- Bootstrap and configure lazy.nvim, the plugin manager for this Neovim setup.
+--
+-- Purpose of this file:
+--   - install lazy.nvim automatically if it is missing
+--   - add lazy.nvim to Neovim's runtime path
+--   - tell lazy.nvim where the plugin definitions live
+--   - customize a small part of lazy.nvim's UI
+--
+-- What lazy.nvim is:
+--   - a plugin manager that downloads, loads, and configures Neovim plugins
+--   - the thing that reads your plugin spec files under lua/plugins/
+--   - a tool that can lazy-load plugins so startup stays fast
+
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = 'https://github.com/folke/lazy.nvim.git'
@@ -32,4 +45,3 @@ require('lazy').setup({
     },
   },
 })
-
