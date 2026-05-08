@@ -5,5 +5,5 @@ vim.g.have_nerd_font = false
 require 'config.options'
 require 'config.keymaps'
 require 'config.autocmds'
+require('features').setup()
 require 'config.lazy'
-

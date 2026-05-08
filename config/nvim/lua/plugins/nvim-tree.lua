@@ -2,10 +2,6 @@ return {
   {
     'nvim-tree/nvim-tree.lua',
     cmd = { 'NvimTreeToggle', 'NvimTreeFocus', 'NvimTreeFindFile', 'NvimTreeCollapse' },
-    keys = {
-      { '<leader>e', '<cmd>NvimTreeToggle<CR>', desc = 'Toggle file tree' },
-      { '<leader>E', '<cmd>NvimTreeFocus<CR>', desc = 'Focus file tree' },
-    },
     dependencies = {
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
