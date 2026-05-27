@@ -7,7 +7,7 @@ function M.gitsigns_on_attach(bufnr)
     vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
   end
 
-  map('n', ']h', function()
+  map('n', '<leader>hn', function()
     if vim.wo.diff then
       vim.cmd.normal { ']c', bang = true }
     else
@@ -15,7 +15,7 @@ function M.gitsigns_on_attach(bufnr)
     end
   end, 'Jump to next hunk')
 
-  map('n', '[h', function()
+  map('n', '<leader>hN', function()
     if vim.wo.diff then
       vim.cmd.normal { '[c', bang = true }
     else

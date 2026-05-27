@@ -15,6 +15,7 @@ return {
 
       ---@type table<string, vim.lsp.Config>
       local servers = {
+        regal = {},
         stylua = {},
         kotlin_lsp = {},
         lua_ls = {
