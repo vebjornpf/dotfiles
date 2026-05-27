@@ -13,8 +13,24 @@ function M.which_key_spec()
 end
 
 function M.setup()
-  vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle file tree' })
-  vim.keymap.set('n', '<leader>E', '<cmd>NvimTreeFocus<CR>', { desc = 'Focus file tree' })
+  local function smart_tree()
+    local api = require 'nvim-tree.api'
+
+    if vim.bo.filetype == 'NvimTree' then
+      api.tree.close()
+      return
+    end
+
+    if api.tree.is_visible() then
+      api.tree.focus()
+      return
+    end
+
+    api.tree.find_file { open = true, focus = true }
+  end
+
+  vim.keymap.set('n', '<leader>e', smart_tree, { desc = 'Open or focus file tree' })
+  vim.keymap.set('n', '<leader>fe', '<cmd>NvimTreeFindFile<CR>', { desc = '[F]ind current file in [E]xplorer' })
 end
 
 return M
