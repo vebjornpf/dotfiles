@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+SCRIPTS_DIR="$(dirname "$0")/scripts"
+fetch_cmd="bash $SCRIPTS_DIR/assignedprs-grouped-render.sh"
+
+data=$(eval "$fetch_cmd")
+
+while true; do
+  selected=$(printf '%s' "$data" | fzf --ansi --prompt="Repos > " \
+    --delimiter='\t' --with-nth=1 \
+    --header=$'enter: view PRs | alt-s: switch session | alt-r: refresh' \
+    --preview "bash $SCRIPTS_DIR/assignedprs-grouped-preview.sh {4}" \
+    --preview-window=up:75% \
+    --bind 'alt-s:execute-silent(bash '"$SCRIPTS_DIR"'/assignedprs-open.sh {2})+abort' \
+    --bind "alt-r:reload($fetch_cmd)" \
+    --expect=enter)
+
+  # first line is the key pressed, second is the selection
+  key=$(printf '%s' "$selected" | head -1)
+  line=$(printf '%s' "$selected" | tail -n +2)
+
+  [[ -z "$line" ]] && break  # esc or no selection → exit
+
+  repo_full=$(printf '%s' "$line" | cut -f2)
+
+  bash "$SCRIPTS_DIR/../ghpr" "$repo_full"
+  # ghpr exits → loop back, reuse cached $data
+done
