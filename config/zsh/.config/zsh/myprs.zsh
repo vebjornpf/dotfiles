@@ -1,4 +1,8 @@
-# Interactive PR browser for PRs authored by me — opens as tmux popup
+# Switch to myprs tmux session, or run myprs directly if already there
 myprs() {
-  tmux display-popup -w90% -h90% -E "$HOME/.config/tmux/myprs"
+  if [[ "$(tmux display -p '#{session_name}' 2>/dev/null)" == "myprs" ]]; then
+    "$HOME/.config/tmux/myprs"
+  else
+    bash "$HOME/.config/tmux/myprs-session"
+  fi
 }

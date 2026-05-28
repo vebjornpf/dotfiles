@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+session="reviews"
+
+if ! tmux has-session -t="$session" 2>/dev/null; then
+  tmux new-session -ds "$session" -c "$HOME"
+  tmux send-keys -t "$session" "$HOME/.config/tmux/prs" Enter
+fi
+
+if [[ "${TMUX-}" != '' ]]; then
+  tmux switch-client -t "$session"
+else
+  tmux attach -t "$session"
+fi

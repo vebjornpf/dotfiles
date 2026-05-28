@@ -4,20 +4,38 @@ SCRIPTS_DIR="$(dirname "$0")/scripts"
 repo_full="${1:-}"
 repo_flag=""
 if [[ -n "$repo_full" ]]; then
-  repo_flag="--repo $repo_full"
+  repo_flag="$repo_full"
 fi
 
-fetch_cmd="bash $SCRIPTS_DIR/ghpr-fetch.sh $repo_full"
+fetch_cmd="bash $SCRIPTS_DIR/ghpr-fetch.sh $repo_flag"
 
-fzf --ansi --prompt="Select PR > " \
-  --delimiter='\t' --with-nth=1,2,3 \
-  --header=$'alt-o: open in web | alt-b: checkout | alt-a: approve | alt-m: merge | alt-c: copy URL | alt-r: reload' \
-  --preview "bash $SCRIPTS_DIR/ghpr-preview.sh {4}" \
-  --preview-window=up:75% \
-  --phony --bind "start:reload($fetch_cmd)" \
-  --bind "alt-r:reload($fetch_cmd)" \
-  --bind "alt-b:execute(gh pr checkout $repo_flag {1})+abort" \
-  --bind "alt-o:execute-silent(gh pr view {1} $repo_flag --web)" \
-  --bind "alt-a:execute-silent(gh pr review {1} $repo_flag --approve)+reload($fetch_cmd)" \
-  --bind "alt-m:execute-silent(gh pr merge --squash $repo_flag {1})+reload($fetch_cmd)" \
-  --bind "alt-c:execute-silent(gh pr view {1} $repo_flag --json url -q .url | xclip -selection clipboard)"
+while true; do
+  selected=$(fzf --ansi --prompt="Select PR > " \
+    --delimiter='\t' --with-nth=1,2,3 \
+    --header=$'enter: open in nvim | alt-o: open in web | alt-a: approve | alt-m: merge | alt-c: copy URL | alt-r: reload' \
+    --preview "bash $SCRIPTS_DIR/ghpr-preview.sh {4}" \
+    --preview-window=up:75% \
+    --phony --bind "start:reload($fetch_cmd)" \
+    --bind "alt-r:reload($fetch_cmd)" \
+    --bind "alt-o:execute-silent(gh pr view {1} ${repo_flag:+--repo $repo_flag} --web)" \
+    --bind "alt-a:execute-silent(gh pr review {1} ${repo_flag:+--repo $repo_flag} --approve)+reload($fetch_cmd)" \
+    --bind "alt-m:execute-silent(gh pr merge --squash ${repo_flag:+--repo $repo_flag} {1})+reload($fetch_cmd)" \
+    --bind "alt-c:execute-silent(gh pr view {1} ${repo_flag:+--repo $repo_flag} --json url -q .url | xclip -selection clipboard)" \
+    --expect=enter)
+
+  key=$(printf '%s' "$selected" | head -1)
+  line=$(printf '%s' "$selected" | tail -n +2)
+
+  [[ -z "$line" ]] && break
+
+  pr_number=$(printf '%s' "$line" | cut -f1)
+  payload=$(printf '%s' "$line" | cut -f4)
+  branch=$(printf '%s' "$payload" | base64 --decode | jq -r '.headRefName')
+  repo=$(printf '%s' "$payload" | base64 --decode | jq -r '.repository.nameWithOwner // empty')
+
+  # Use explicit repo arg if available, otherwise use from payload, else derive from cwd
+  open_repo="${repo_full:-${repo:-}}"
+
+  bash "$SCRIPTS_DIR/ghpr-open.sh" "$open_repo" "$pr_number" "$branch"
+  break  # session switched → close popup
+done
