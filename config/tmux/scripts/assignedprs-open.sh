@@ -12,7 +12,14 @@ session_name=$(echo "$repo_short" | tr . _)
 clone_path="$HOME/git/$repo_short"
 
 if [[ ! -d "$clone_path" ]]; then
-  tmux display-popup -E "git clone git@github.com:$repo_full $clone_path && echo '' && echo 'Clone complete. Press enter to continue.' && read || (echo '' && echo 'Clone failed. Press enter to dismiss.' && read)"
+  echo "Cloning $repo_full..."
+  if git clone "git@github.com:$repo_full" "$clone_path"; then
+    echo "Clone complete."
+  else
+    echo "Clone failed. Press enter to dismiss."
+    read -r
+    exit 1
+  fi
 fi
 
 if ! tmux has-session -t="$session_name" 2>/dev/null; then

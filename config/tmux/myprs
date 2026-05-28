@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+SCRIPTS_DIR="$(dirname "$0")/scripts"
+fetch_cmd="bash $SCRIPTS_DIR/myprs-fetch.sh"
+
+fzf --ansi --prompt="My PRs > " \
+  --delimiter='\t' --with-nth=1,2,3 \
+  --header=$'alt-o: open in web | alt-b: checkout | alt-a: approve | alt-m: merge | alt-d: toggle draft | alt-c: copy URL | alt-r: reload' \
+  --preview "bash $SCRIPTS_DIR/myprs-preview.sh {4}" \
+  --preview-window=up:75% \
+  --phony --bind "start:reload($fetch_cmd)" \
+  --bind "alt-r:reload($fetch_cmd)" \
+  --bind "alt-b:execute(bash $SCRIPTS_DIR/myprs-checkout.sh \$(printf '%s' {4} | base64 --decode | jq -r '.repository.nameWithOwner') {1})+abort" \
+  --bind "alt-o:execute-silent(gh pr view {1} --repo \$(printf '%s' {4} | base64 --decode | jq -r '.repository.nameWithOwner') --web)" \
+  --bind "alt-a:execute-silent(gh pr review {1} --repo \$(printf '%s' {4} | base64 --decode | jq -r '.repository.nameWithOwner') --approve)+reload($fetch_cmd)" \
+  --bind "alt-m:execute-silent(gh pr merge --squash --repo \$(printf '%s' {4} | base64 --decode | jq -r '.repository.nameWithOwner') {1})+reload($fetch_cmd)" \
+  --bind "alt-d:execute-silent(bash -c 'repo=\$(printf \"%s\" {4} | base64 --decode | jq -r \".repository.nameWithOwner\"); draft=\$(printf \"%s\" {4} | base64 --decode | jq -r \".isDraft\"); if [[ \"\$draft\" == \"true\" ]]; then gh pr ready \"\$repo\" {1}; else gh pr ready --undo {1} --repo \"\$repo\"; fi')+reload($fetch_cmd)" \
+  --bind "alt-c:execute-silent(gh pr view {1} --repo \$(printf '%s' {4} | base64 --decode | jq -r '.repository.nameWithOwner') --json url -q .url | xclip -selection clipboard)"
