@@ -7,13 +7,30 @@ printf '%s' "$b64" | base64 --decode | jq -r '
   def red(s): c("31"; s);
   def cyan(s): c("36"; s);
   def bold(s): c("1"; s);
+  def dim(s): c("2"; s);
 
   . as $p |
   [
     " " + bold("#\($p.number) ") + $p.title,
-    " Author: " + ($p.author.name // $p.author.login) + " (" + $p.author.login + ")",
-    " URL: " + $p.url,
-    " Review: " + ($p.reviewDecision // "PENDING"),
+    " " + dim("author: ") + ($p.author.name // $p.author.login) + " (" + $p.author.login + ")",
+    " " + dim("branch: ") + ($p.headRefName // "") + " → " + ($p.baseRefName // ""),
+    " " + dim("url:    ") + $p.url,
+    " " + dim("status: ") + (if $p.isDraft then yellow("DRAFT") else green("READY") end),
+    " " + dim("merge:  ") + (
+      if $p.mergeable == "CONFLICTING" then red("CONFLICTING")
+      elif $p.mergeable == "MERGEABLE" then
+        (if $p.mergeStateStatus == "CLEAN" then green("CLEAN")
+         elif $p.mergeStateStatus == "BLOCKED" then yellow("BLOCKED")
+         elif $p.mergeStateStatus == "BEHIND" then yellow("BEHIND")
+         elif $p.mergeStateStatus == "UNSTABLE" then yellow("UNSTABLE")
+         elif $p.mergeStateStatus == "DIRTY" then red("DIRTY")
+         else yellow($p.mergeStateStatus // "UNKNOWN") end)
+      else yellow("UNKNOWN") end),
+    " " + dim("review: ") + (
+      if $p.reviewDecision == "APPROVED" then green("APPROVED")
+      elif $p.reviewDecision == "CHANGES_REQUESTED" then red("CHANGES_REQUESTED")
+      elif $p.reviewDecision == "REVIEW_REQUIRED" then yellow("REVIEW_REQUIRED")
+      else dim($p.reviewDecision // "NONE") end),
     "",
     "Status checks:",
     (if ($p.statusCheckRollup|length)>0 then

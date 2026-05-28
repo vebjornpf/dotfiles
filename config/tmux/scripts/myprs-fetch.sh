@@ -9,7 +9,7 @@ gh search prs --author "@me" --state open --limit 100 \
   | jq -r '.[] | "\(.number)\t\(.repository.nameWithOwner)"' \
   | while IFS=$'\t' read -r number repo; do
     gh pr view "$number" --repo "$repo" \
-      --json number,title,author,body,commits,reviews,statusCheckRollup,files,url,isDraft,createdAt,updatedAt \
+      --json number,title,author,body,commits,reviews,statusCheckRollup,files,url,isDraft,createdAt,updatedAt,mergeable,mergeStateStatus,reviewDecision,headRefName,baseRefName \
       2>/dev/null \
       | jq --arg repo "$repo" '. + {repository: {nameWithOwner: $repo}}' \
       > "$tmpdir/${repo//\//_}_${number}.json"
