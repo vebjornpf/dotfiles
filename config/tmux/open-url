@@ -1,0 +1,8 @@
+#!/bin/sh
+if command -v explorer.exe > /dev/null 2>&1; then
+  explorer.exe "$1"
+elif command -v open > /dev/null 2>&1; then
+  open "$1"
+else
+  xdg-open "$1"
+fi
