@@ -19,3 +19,14 @@ vim.o.inccommand = 'split'
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 vim.o.confirm = true
+
+-- WSL clipboard via Windows clip.exe
+vim.g.clipboard = {
+  name = "win32clipboard",
+  copy  = { ["+"] = "clip.exe", ["*"] = "clip.exe" },
+  paste = {
+    ["+"] = { "powershell.exe", "-noprofile", "-command", "Get-Clipboard" },
+    ["*"] = { "powershell.exe", "-noprofile", "-command", "Get-Clipboard" },
+  },
+  cache_enabled = 0,
+}
