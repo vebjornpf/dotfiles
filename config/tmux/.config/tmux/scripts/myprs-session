@@ -4,7 +4,7 @@ session="myprs"
 
 if ! tmux has-session -t="$session" 2>/dev/null; then
   tmux new-session -ds "$session" -c "$HOME"
-  tmux send-keys -t "$session" "$HOME/.config/tmux/myprs" Enter
+  tmux send-keys -t "$session" "$HOME/.config/tmux/scripts/myprs" Enter
 fi
 
 if [[ "${TMUX-}" != '' ]]; then

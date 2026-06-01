@@ -28,7 +28,7 @@ ai-cmd() {
   local command=$(echo "$selected" | awk -F' \\| ' '{for(i=3;i<=NF;i++) printf "%s%s",$i,(i<NF?" | ":""); print ""}')
 
   # Put into zsh prompt buffer — you can edit before hitting enter
-  print -z "$command"
+  print -rz "$command"
 }
 
 # Ctrl+F: jump to next <placeholder> in buffer and remove it
