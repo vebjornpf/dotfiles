@@ -1,0 +1,4 @@
+# .stowrc - GNU Stow configuration
+--ignore=.stowrc
+--ignore=README.md
+--ignore=\.git

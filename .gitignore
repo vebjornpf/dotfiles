@@ -1,1 +1,23 @@
 .idea/
+
+# Generated / cache files
+*.log
+.zcompdump
+.zcompdump.*
+
+# Temp
+tmp/
+
+# Node
+node_modules/
+package-lock.json
+bun.lock
+
+# Neovim
+lazy-lock.json
+
+# tmux plugins (managed by TPM at runtime)
+config/tmux/.config/tmux/plugins/
+
+# macOS
+.DS_Store
