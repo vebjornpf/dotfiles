@@ -47,7 +47,9 @@ alias gsts='git stash show'
 alias gd='git diff'
 alias gds='git diff --staged'
 alias gl='git log --oneline --graph'
+alias glf='git log --stat --decorate'
 alias glog='git log --oneline --decorate --graph --all'
+alias gsh='git show'
 
 # Reset/Clean
 alias grs='git reset'
@@ -186,5 +188,4 @@ gfs() {
   branch=$(echo "$branch" | xargs)
   [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
 }
-
 
