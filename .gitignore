@@ -4,6 +4,7 @@
 *.log
 .zcompdump
 .zcompdump.*
+.zsh_history
 
 # Temp
 tmp/

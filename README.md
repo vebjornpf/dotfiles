@@ -51,6 +51,9 @@ git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
 
 Then open tmux and press `prefix + I` to install all plugins.
 
+This tmux config uses Nerd Font icons in the status bar. Your terminal must be
+configured to use a Nerd Font, or the icons will show up as `?`.
+
 ### After stowing opencode
 
 The opencode plugin needs its dependencies installed:
