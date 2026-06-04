@@ -8,11 +8,9 @@ else
         while read -r dir; do
             name=$(basename "$dir")
             if [[ "$name" == *-wk ]]; then
-                # likely a worktree (e.g., repo-branchname)
-                printf "\033[33m%s\033[0m\n" "$dir"   # yellow
-            else
-                printf "\033[36m%s\033[0m\n" "$dir"   # cyan
+                continue  # worktrees are managed via 'wt', not here
             fi
+            printf "\033[36m%s\033[0m\n" "$dir"   # cyan
         done | fzf --ansi
     )
 fi

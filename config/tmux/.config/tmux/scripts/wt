@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# wt — interactive worktree manager
+# Enter:  switch to worktree in a named tmux session
+# alt-d:  delete worktree (with safety checks)
+
+SCRIPTS_DIR="$(dirname "$0")"
+SCRIPT="$0"
+GIT=/usr/bin/git
+
+_wt_list() {
+  cd "$HOME" || exit 1
+  for dir in ~/git/*-wk; do
+    [[ -d "$dir" ]] || continue
+    name=$(basename "$dir")
+    branch=$($GIT -C "$dir" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
+    dirty=""
+    if [[ -n "$($GIT -C "$dir" status --porcelain 2>/dev/null)" ]]; then
+      dirty=" *"
+    fi
+    printf "%s\t%s%s\t%s\n" "$name" "$branch" "$dirty" "$dir"
+  done
+}
+
+_wt_delete() {
+  cd "$HOME" || exit 1
+  local path="$1"
+  local name
+  name=$(basename "$path")
+
+  # Dirty check
+  if [[ -n "$($GIT -C "$path" status --porcelain 2>/dev/null)" ]]; then
+    echo "ERROR: $name has uncommitted changes. Commit or discard them first."
+    read -r -p "Press enter to continue..."
+    exit 1
+  fi
+
+  # Unpushed commits check
+  local unpushed
+  unpushed=$($GIT -C "$path" log "@{u}.." 2>/dev/null)
+  if [[ -n "$unpushed" ]]; then
+    echo "WARNING: $name has unpushed commits:"
+    echo "$unpushed"
+    read -r -p "Delete anyway? [y/N] " confirm
+    [[ "$confirm" =~ ^[Yy]$ ]] || exit 0
+  fi
+
+  # Resolve repo root — strip trailing /.git from git-common-dir (no dirname/realpath needed)
+  local git_common_dir repo_root
+  git_common_dir=$($GIT -C "$path" rev-parse --git-common-dir 2>/dev/null)
+  repo_root="${git_common_dir%/.git}"
+
+  $GIT -C "$repo_root" worktree remove "$path" && \
+    $GIT -C "$repo_root" worktree prune && \
+    echo "Removed $name"
+  read -r -p "Press enter to continue..."
+}
+
+# Sub-commands (called from fzf binds)
+case "${1:-}" in
+  --list)   _wt_list; exit 0 ;;
+  --delete) _wt_delete "$2"; exit $? ;;
+esac
+
+# Main fzf loop
+cd "$HOME" || exit 1
+
+while true; do
+  selected=$(
+    "$SCRIPT" --list | fzf --ansi \
+      --prompt="Worktrees > " \
+      --delimiter=$'\t' \
+      --with-nth=1,2 \
+      --header=$'enter: switch session | alt-d: delete worktree' \
+      --preview="$GIT -C {3} log --oneline -10; echo '---'; $GIT -C {3} status --short" \
+      --preview-window=up:50% \
+      --bind "alt-d:execute(bash \"$SCRIPT\" --delete {3})+reload(\"$SCRIPT\" --list)" \
+      --expect=enter
+  )
+
+  key=$(printf '%s' "$selected" | head -1)
+  line=$(printf '%s' "$selected" | tail -n +2)
+
+  [[ -z "$line" ]] && break
+
+  path=$(printf '%s' "$line" | cut -f3)
+
+  bash "$SCRIPTS_DIR/tmux-sessionizer" "$path"
+  break
+done

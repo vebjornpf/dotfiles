@@ -20,5 +20,8 @@ lazy-lock.json
 # tmux plugins (managed by TPM at runtime)
 config/tmux/.config/tmux/plugins/
 
+# Private skills (employer/machine-specific, not for public dotfiles)
+config/opencode/.config/opencode/skills/private-*/
+
 # macOS
 .DS_Store

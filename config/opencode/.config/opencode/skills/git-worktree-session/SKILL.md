@@ -31,11 +31,12 @@ Rules when sharing the user's checkout:
 - If the task clearly needs a different branch, suggest creating a worktree instead of switching in place.
 
 ## Conventions (locked)
-- **Worktree location**: `~/worktrees/<repo-name>/<task-slug>`
+- **Worktree location**: `~/git/<repo-name>-<task-slug>-wk`
   - `<repo-name>` is the basename of the main repo's toplevel directory
   - `<task-slug>` is the slugified task name (lowercase, hyphenated, alphanumeric)
+  - The `-wk` suffix marks it as a worktree (used by `tmux-sessionizer` and the `wt` cleanup tool)
 - **Base branch**: `main` if it exists, otherwise `master`. Always `git fetch` first so the worktree starts from the latest remote tip.
-- **Branch name**: same as `<task-slug>`. No prefixes (no `feat/`, no initials).
+- **Branch name**: same as `<repo-name>-<task-slug>` (without the `-wk` suffix). No other prefixes.
 - **Auto setup**: copy `.env` and `.env.local` from the main worktree if they exist. Do NOT auto-install dependencies — let the user decide.
 
 ## Rules
@@ -58,7 +59,7 @@ Rules when sharing the user's checkout:
 6. Compute target path: `~/worktrees/<repo-name>/<task-slug>`. If it already exists, stop and ask.
 7. Create the worktree and branch in one shot:
    ```sh
-   git worktree add -b <task-slug> ~/worktrees/<repo-name>/<task-slug> origin/<base-branch>
+   git worktree add -b <repo-name>-<task-slug> ~/git/<repo-name>-<task-slug>-wk origin/<base-branch>
    ```
 8. Copy env files if present in the main worktree:
    - `.env` -> new worktree
@@ -76,7 +77,7 @@ Triggers: "check out branch X in a worktree", "worktree for existing branch", "p
 
 Steps:
 1. Verify repo root as usual.
-2. Determine repo name and target path. Use the branch name slugified as `<task-slug>` unless user gives a different name. Path: `~/worktrees/<repo-name>/<task-slug>`.
+2. Determine repo name and target path. Use the branch name slugified as `<task-slug>` unless user gives a different name. Path: `~/git/<repo-name>-<task-slug>-wk`.
 3. `git fetch origin` to ensure remote refs current.
 4. Determine branch source:
    - Local branch exists → use it directly.
@@ -103,6 +104,9 @@ A worktree behaves as a normal git checkout. No special flow.
 - **Agent must NEVER push.** No `git push`, no `git push -u`, no `git push origin --delete`.
 - **Agent must NEVER create or modify PRs.** No `gh pr create`, `gh pr edit`, or equivalent.
 - If the user asks to "commit and push", agent commits and then prints the exact `git push` command for the user to run manually.
+
+### Cleaning up worktrees
+Use the `wt` command (available in the user's shell) for interactive cleanup. It opens an fzf picker showing all `~/git/*-wk` directories with git status. `alt-d` deletes the selected worktree after safety checks. Direct the user to run `wt` rather than manually running `git worktree remove`.
 
 ### Removing a worktree
 Pre-flight checks (run in order, stop on first failure):
