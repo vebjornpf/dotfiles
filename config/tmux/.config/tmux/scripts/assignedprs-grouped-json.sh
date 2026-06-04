@@ -4,11 +4,11 @@ set -euo pipefail
 
 {
   gh search prs --review-requested=@me --state=open \
-    --limit 100 \
+    --limit 200 \
     --sort updated \
     --json author,commentsCount,createdAt,isDraft,isLocked,number,repository,state,title,updatedAt,url
   gh search prs --reviewed-by=@me --state=open \
-    --limit 100 \
+    --limit 200 \
     --sort updated \
     --json author,commentsCount,createdAt,isDraft,isLocked,number,repository,state,title,updatedAt,url
 } |
