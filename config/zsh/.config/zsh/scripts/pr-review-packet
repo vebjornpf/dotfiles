@@ -1,0 +1,201 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  printf 'Usage: pr-review-packet\n'
+  printf '       pr-review-packet --flush\n'
+  printf '       pr-review-packet --status\n'
+  exit 0
+fi
+
+[[ $# -le 1 ]] || { printf 'Usage: pr-review-packet\n' >&2; exit 1; }
+
+command -v git >/dev/null 2>&1 || { printf 'Missing required command: git\n' >&2; exit 1; }
+command -v gh >/dev/null 2>&1 || { printf 'Missing required command: gh\n' >&2; exit 1; }
+command -v jq >/dev/null 2>&1 || { printf 'Missing required command: jq\n' >&2; exit 1; }
+
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { printf 'Not inside a git repository\n' >&2; exit 1; }
+gh auth status >/dev/null 2>&1 || { printf 'GitHub CLI is not authenticated\n' >&2; exit 1; }
+
+git_dir="$(git rev-parse --absolute-git-dir)"
+packet_dir="$git_dir/pr-review"
+previous_review_json="$packet_dir/review.json"
+previous_review_diff="$packet_dir/review.diff"
+
+if [[ "${1:-}" == "--flush" ]]; then
+  if [[ -f "$previous_review_json" || -f "$previous_review_diff" ]]; then
+    rm -f "$previous_review_json" "$previous_review_diff"
+    rmdir "$packet_dir" 2>/dev/null || true
+    printf 'Cleared stored PR packet\n'
+  else
+    printf 'No stored PR packet to clear\n'
+  fi
+  exit 0
+fi
+
+if [[ "${1:-}" == "--status" ]]; then
+  if [[ ! -f "$previous_review_json" ]]; then
+    printf 'No stored PR packet\n'
+    exit 0
+  fi
+
+  stored_pr_number="$(jq -r '.pr.number // empty' "$previous_review_json")"
+  stored_pr_title="$(jq -r '.pr.title // empty' "$previous_review_json")"
+  stored_pr_branch="$(jq -r '.pr.headRefName // empty' "$previous_review_json")"
+  stored_generated_at="$(jq -r '.generated_at // empty' "$previous_review_json")"
+
+  printf 'Stored PR #%s\n' "$stored_pr_number"
+  [[ -n "$stored_pr_title" ]] && printf 'Title: %s\n' "$stored_pr_title"
+  [[ -n "$stored_pr_branch" ]] && printf 'Branch: %s\n' "$stored_pr_branch"
+  [[ -n "$stored_generated_at" ]] && printf 'Fetched: %s\n' "$stored_generated_at"
+  printf 'Packet: .git/pr-review/\n'
+  exit 0
+fi
+
+[[ $# -eq 0 ]] || { printf 'Usage: pr-review-packet\n' >&2; exit 1; }
+
+had_previous_packet=0
+[[ -f "$previous_review_json" ]] && had_previous_packet=1
+previous_pr_number=''
+previous_pr_title=''
+previous_pr_branch=''
+if [[ $had_previous_packet -eq 1 ]]; then
+  previous_pr_number="$(jq -r '.pr.number // empty' "$previous_review_json")"
+  previous_pr_title="$(jq -r '.pr.title // empty' "$previous_review_json")"
+  previous_pr_branch="$(jq -r '.pr.headRefName // empty' "$previous_review_json")"
+fi
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+pr_fields='number,title,body,url,author,baseRefName,headRefName,isDraft,mergeable,mergeStateStatus,reviewDecision,createdAt,updatedAt,files,reviews,headRepositoryOwner'
+
+GH_PAGER=cat gh pr view --json "$pr_fields" >"$tmpdir/pr.json" || {
+  printf 'Current branch is not associated with a pull request\n' >&2
+  exit 1
+}
+
+pr_number="$(jq -r '.number // empty' "$tmpdir/pr.json")"
+[[ -n "$pr_number" ]] || { printf 'Failed to resolve pull request number\n' >&2; exit 1; }
+
+pr_title="$(jq -r '.title // empty' "$tmpdir/pr.json")"
+pr_branch="$(jq -r '.headRefName // empty' "$tmpdir/pr.json")"
+
+GH_PAGER=cat gh api "repos/:owner/:repo/pulls/$pr_number/comments" --paginate >"$tmpdir/comments.json" || {
+  printf 'Failed to fetch pull request inline comments\n' >&2
+  exit 1
+}
+
+GH_PAGER=cat gh pr diff >"$tmpdir/review.diff" || {
+  printf 'Failed to fetch pull request diff\n' >&2
+  exit 1
+}
+
+jq -n \
+  --slurpfile pr "$tmpdir/pr.json" \
+  --slurpfile comments "$tmpdir/comments.json" \
+  '
+    ($pr[0]) as $pr |
+    ($comments[0] // []) as $comments |
+    {
+      generated_at: (now | todateiso8601),
+      pr: {
+        number: $pr.number,
+        title: $pr.title,
+        body: ($pr.body // ""),
+        url: $pr.url,
+        author: ($pr.author.login // "ghost"),
+        baseRefName: $pr.baseRefName,
+        headRefName: $pr.headRefName,
+        isDraft: $pr.isDraft,
+        mergeable: $pr.mergeable,
+        mergeStateStatus: $pr.mergeStateStatus,
+        reviewDecision: $pr.reviewDecision,
+        createdAt: $pr.createdAt,
+        updatedAt: $pr.updatedAt
+      },
+      changed_files: ($pr.files // [] | map({
+        path,
+        additions,
+        deletions,
+        changes
+      })),
+      reviews: ($pr.reviews // [] | map({
+        author: (.author.login // "ghost"),
+        state,
+        submittedAt,
+        body: (.body // "")
+      })),
+      inline_comments: ($comments | map({
+        author: (.user.login // "ghost"),
+        path,
+        line,
+        body: (.body // ""),
+        diff_hunk: (.diff_hunk // ""),
+        created_at
+      }))
+    }
+  ' >"$tmpdir/review.json"
+
+summary_lines=()
+if [[ $had_previous_packet -eq 1 ]]; then
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && summary_lines+=("$line")
+  done < <(
+    jq -r -n \
+      --slurpfile old "$previous_review_json" \
+      --slurpfile new "$tmpdir/review.json" \
+      '
+        def paths(doc): doc.changed_files | map(.path);
+
+        ($old[0]) as $old |
+        ($new[0]) as $new |
+        [
+          if $old.pr.title != $new.pr.title then "title changed" else empty end,
+          if $old.pr.body != $new.pr.body then "body changed" else empty end,
+          if $old.pr.updatedAt != $new.pr.updatedAt then "updatedAt: \($old.pr.updatedAt) -> \($new.pr.updatedAt)" else empty end,
+          if $old.pr.reviewDecision != $new.pr.reviewDecision then "review decision: \(($old.pr.reviewDecision // "none")) -> \(($new.pr.reviewDecision // "none"))" else empty end,
+          if $old.pr.mergeStateStatus != $new.pr.mergeStateStatus then "merge state: \(($old.pr.mergeStateStatus // "none")) -> \(($new.pr.mergeStateStatus // "none"))" else empty end,
+          if ($old.changed_files | length) != ($new.changed_files | length) then "changed files: \(($old.changed_files | length)) -> \(($new.changed_files | length))" else empty end,
+          if ($old.reviews | length) != ($new.reviews | length) then "reviews: \(($old.reviews | length)) -> \(($new.reviews | length))" else empty end,
+          if ($old.inline_comments | length) != ($new.inline_comments | length) then "inline comments: \(($old.inline_comments | length)) -> \(($new.inline_comments | length))" else empty end,
+          ((paths($new) - paths($old))[]? | "file added: \(.)"),
+          ((paths($old) - paths($new))[]? | "file removed: \(.)")
+        ]
+        | .[]
+      '
+  )
+
+  if [[ -f "$previous_review_diff" ]] && ! cmp -s "$previous_review_diff" "$tmpdir/review.diff"; then
+    summary_lines+=("diff changed")
+  fi
+fi
+
+mkdir -p "$packet_dir"
+mv "$tmpdir/review.json" "$packet_dir/review.json"
+mv "$tmpdir/review.diff" "$packet_dir/review.diff"
+
+if [[ $had_previous_packet -eq 0 ]]; then
+  printf 'Storing PR #%s\n' "$pr_number"
+else
+  printf 'Stored PR #%s\n' "$pr_number"
+fi
+printf 'Title: %s\n' "$pr_title"
+printf 'Branch: %s\n' "$pr_branch"
+
+if [[ $had_previous_packet -eq 1 && ( "$previous_pr_number" != "$pr_number" || "$previous_pr_title" != "$pr_title" || "$previous_pr_branch" != "$pr_branch" ) ]]; then
+  printf 'Previous stored PR: #%s\n' "$previous_pr_number"
+  [[ -n "$previous_pr_title" ]] && printf 'Previous title: %s\n' "$previous_pr_title"
+  [[ -n "$previous_pr_branch" ]] && printf 'Previous branch: %s\n' "$previous_pr_branch"
+fi
+
+printf 'Updated packet: .git/pr-review/\n'
+
+if [[ $had_previous_packet -eq 0 ]]; then
+  printf 'No previous packet to compare against\n'
+elif [[ ${#summary_lines[@]} -eq 0 ]]; then
+  printf 'No PR changes since last packet\n'
+else
+  printf 'Changes since last packet:\n'
+  printf '  - %s\n' "${summary_lines[@]}"
+fi
