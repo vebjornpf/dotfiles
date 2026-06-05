@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+bash "$HOME/.config/tmux/scripts/daily-window-session" jira "true"
