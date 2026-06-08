@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-snapshot_file="$HOME/git/daily/jira/mywork-current.json"
+target="${1:-mywork}"
+snapshot_file="$HOME/git/daily/jira/${target}-current.json"
 
 if [[ ! -f "$snapshot_file" ]]; then
   exit 0

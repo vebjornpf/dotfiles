@@ -7,11 +7,12 @@ status_file="$state_dir/sync-status.json"
 
 usage() {
   cat >&2 <<'EOF'
-Usage: jira-sync [mywork ...]
+Usage: jira-sync [mywork|backlog ...]
 
 No arguments syncs all currently supported targets.
 Currently supported targets:
   mywork
+  backlog
 EOF
 }
 
@@ -30,10 +31,17 @@ target_query() {
     mywork)
       printf '%s\n' 'assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC'
       ;;
+    backlog)
+      printf '%s\n' 'project = TDX AND status = Backlog AND issuetype not in subTaskIssueTypes() ORDER BY created DESC'
+      ;;
     *)
       return 1
       ;;
   esac
+}
+
+target_fields() {
+  printf '%s\n' 'issuetype,key,assignee,reporter,priority,status,summary,description'
 }
 
 update_status_attempt() {
@@ -116,13 +124,14 @@ update_status_error() {
 
 sync_target() {
   local target="$1"
-  local query current_file timestamp
+  local query fields current_file timestamp
   local tmpjson tmperr count error_message
 
   query="$(target_query "$target")" || {
     echo "Unsupported jira-sync target: $target" >&2
     return 1
   }
+  fields="$(target_fields)"
 
   current_file="$state_dir/${target}-current.json"
   timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
@@ -133,7 +142,7 @@ sync_target() {
   tmperr="$(mktemp)"
   trap 'rm -f "${tmpjson:-}" "${tmperr:-}"' RETURN
 
-  if acli jira workitem search --jql "$query" --paginate --json >"$tmpjson" 2>"$tmperr"; then
+  if acli jira workitem search --jql "$query" --fields "$fields" --paginate --json >"$tmpjson" 2>"$tmperr"; then
     count="$(jq 'length' "$tmpjson")"
 
     mv "$tmpjson" "$current_file"
@@ -159,14 +168,14 @@ main() {
   ensure_status_file
 
   if (( $# == 0 )); then
-    targets=(mywork)
+    targets=(mywork backlog)
   else
     targets=("$@")
   fi
 
   for target in "${targets[@]}"; do
     case "$target" in
-      mywork)
+      mywork|backlog)
         ;;
       -h|--help)
         usage

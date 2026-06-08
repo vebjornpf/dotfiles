@@ -7,13 +7,19 @@ jira() {
     -h|--help|help)
       cat <<'EOF'
 jira         open jira window in daily session
+jira backlog sync and browse jira backlog
 jira mywork  fzf picker of my tasks assigned
 jira sync    sync jira data snapshot
 
 direct commands:
+jira-backlog fzf picker of jira backlog
 jira-mywork  fzf picker of my tasks assigned
 jira-sync    sync jira data snapshot
 EOF
+      ;;
+    backlog)
+      shift
+      jira-backlog "$@"
       ;;
     mywork)
       shift

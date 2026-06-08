@@ -3,12 +3,13 @@
 set -euo pipefail
 
 status_file="$HOME/git/daily/jira/sync-status.json"
-b64="${1:-}"
+target="${1:-mywork}"
+b64="${2:-}"
 
 last_sync="Never"
 
 if [[ -f "$status_file" ]]; then
-  synced_at="$(jq -r '.targets.mywork.last_sync_at // .last_sync_at // empty' "$status_file")"
+  synced_at="$(jq -r --arg target "$target" '.targets[$target].last_sync_at // .last_sync_at // empty' "$status_file")"
   [[ -n "$synced_at" ]] && last_sync="$synced_at"
 fi
 
@@ -39,6 +40,7 @@ printf '%s' "$b64" | base64 --decode | jq -r --arg last_sync "$last_sync" '
     "type      " + ($issue.fields.issuetype.name // ""),
     "priority  " + ($issue.fields.priority.name // ""),
     "assignee  " + ($issue.fields.assignee.displayName // "Unassigned"),
+    "reporter  " + ($issue.fields.reporter.displayName // "Unknown"),
     "url       https://elhub.atlassian.net/browse/" + $issue.key,
     (
       if ($issue.fields.description? // null) == null then
