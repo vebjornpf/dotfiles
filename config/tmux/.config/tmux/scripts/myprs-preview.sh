@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
 b64="$1"
+wrap_width="${FZF_PREVIEW_COLUMNS:-80}"
+
+if [[ "$wrap_width" -lt 20 ]]; then
+  wrap_width=80
+fi
 
 printf '%s' "$b64" | base64 --decode | jq -r '
   def c(code; s): "\u001b[" + code + "m" + s + "\u001b[0m";
@@ -46,4 +51,4 @@ printf '%s' "$b64" | base64 --decode | jq -r '
     ($p.files | map("- " + .path + " (+" + (.additions|tostring) + "/-" + (.deletions|tostring) + ")") | .[])
   ]
   | .[]
-  '
+  ' | fold -s -w "$wrap_width"

@@ -15,7 +15,7 @@ while true; do
     --delimiter='\t' --with-nth=1 \
     --header=$'enter: open in web | alt-r: refresh | alt-a: assign to me | alt-c: copy key | alt-u: copy url' \
     --preview "bash $PREVIEW_SCRIPT $TARGET {6}" \
-    --preview-window=up:75%:wrap \
+    --preview-window=up:75% \
     --bind "start:reload(bash $LIST_SCRIPT $TARGET)" \
     --bind "alt-r:reload(bash $SYNC_SCRIPT $TARGET >/dev/null && bash $LIST_SCRIPT $TARGET)" \
     --bind "alt-a:execute-silent(acli jira workitem assign --key {2} --assignee @me --yes >/dev/null)+reload(bash $SYNC_SCRIPT $TARGET >/dev/null && bash $LIST_SCRIPT $TARGET)" \

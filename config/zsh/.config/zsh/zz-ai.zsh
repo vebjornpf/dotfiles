@@ -19,8 +19,8 @@ ai-cmd() {
       --prompt="ai-cmd> " \
       --height=40% \
       --layout=reverse \
-      --preview='echo {}' \
-      --preview-window=down:3:wrap \
+      --preview='printf "%s\n" {} | fold -s -w "${FZF_PREVIEW_COLUMNS:-80}"' \
+      --preview-window=down:3 \
       --no-sort) || return 0
 
   # Extract command — fields are: description | tool | command

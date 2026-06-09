@@ -5,6 +5,11 @@ set -euo pipefail
 status_file="$HOME/git/daily/jira/sync-status.json"
 target="${1:-mywork}"
 b64="${2:-}"
+wrap_width="${FZF_PREVIEW_COLUMNS:-80}"
+
+if [[ "$wrap_width" -lt 20 ]]; then
+  wrap_width=80
+fi
 
 last_sync="Never"
 
@@ -24,7 +29,8 @@ printf '%s' "$b64" | base64 --decode | jq -r --arg last_sync "$last_sync" '
 
   def marks_text($node):
     reduce (($node.marks // []))[] as $mark ($node.text // "";
-      if $mark.type == "link" then . + " <" + ($mark.attrs.href // "") + ">"
+      if $mark.type == "link" then
+        . + (if ($mark.attrs.href // "") == "" then "" else "\n" + ($mark.attrs.href // "") end)
       elif $mark.type == "code" then "`" + . + "`"
       else .
       end
@@ -92,4 +98,4 @@ printf '%s' "$b64" | base64 --decode | jq -r --arg last_sync "$last_sync" '
     )
   ]
   | .[]
-'
+' | fold -s -w "$wrap_width"

@@ -123,7 +123,7 @@ gfs() {
   local branch
   branch=$(git branch --color=always | grep -v '/HEAD' | sed 's/^..//' \
     | fzf --ansi \
-          --preview-window=wrap \
+          --preview-window=default \
           --bind "ctrl-d:execute(
             if [[ {} != 'main' && {} != 'master' ]]; then
               git branch -D {} >/dev/null 2>&1 && echo '🗑️  Deleted branch: {}' >&2
@@ -150,7 +150,7 @@ gfs() {
 
             echo '🪵 Last 3 commits:'
             # Show 3 latest commits, wrap dynamically to preview width, preserve newlines
-            git log -3 --pretty=format:'%h | %cr | %s' \"\$b\" | fold -s -w \"\$(tput cols)\"
+            git log -3 --pretty=format:'%h | %cr | %s' \"\$b\" | fold -s -w \"${FZF_PREVIEW_COLUMNS:-80}\"
             echo
             echo
 
@@ -188,4 +188,3 @@ gfs() {
   branch=$(echo "$branch" | xargs)
   [[ -n "$branch" ]] && git switch "${branch#remotes/origin/}"
 }
-
