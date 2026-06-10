@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+session="daily"
+session_path="$HOME/git/daily"
+
+if ! tmux has-session -t="$session" 2>/dev/null; then
+  tmux new-session -ds "$session" -c "$session_path"
+fi
+
+if [[ -n "${TMUX-}" ]]; then
+  tmux switch-client -t "$session"
+else
+  tmux attach -t "$session"
+fi
