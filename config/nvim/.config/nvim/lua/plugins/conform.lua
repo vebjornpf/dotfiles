@@ -30,6 +30,8 @@ return {
         lsp_format = 'fallback',
       },
       formatters_by_ft = {
+        bash = { 'shfmt' },
+        sh = { 'shfmt' },
         -- rust = { 'rustfmt' },
         -- python = { 'isort', 'black' },
         -- javascript = { 'prettierd', 'prettier', stop_after_first = true },
