@@ -82,18 +82,10 @@ stow -t "$HOME" -R zsh       # restow (remove and re-create symlinks)
 3. Add the package name to the `packages` array in `stow-all.sh`
 4. Run `stow <tool>` from `config/`
 
-## Repository structure
+For command-based tools, prefer feature-centric layout under `config/<tool>/.config/<tool>/`:
 
-```
-dotfiles/
-├── .stowrc               # Stow defaults: --target=$HOME
-├── .gitignore
-├── stow-all.sh           # Bootstrap: stow all packages
-├── lib/
-│   └── platform.sh       # detect_platform() → macos / linux / wsl
-└── config/
-    ├── zsh/              # Zsh config
-    ├── nvim/             # Neovim config
-    ├── tmux/             # tmux config + scripts
-    └── opencode/         # OpenCode AI config
-```
+- `bin/` — public commands
+- `lib/` — internal reusable logic
+- `zsh/` — PATH, env, completion
+
+Reference: `jira` package.

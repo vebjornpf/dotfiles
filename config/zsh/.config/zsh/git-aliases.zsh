@@ -28,6 +28,7 @@ alias gplr='git pull --rebase'
 # Rebase
 alias grb='git rebase'
 alias grbi='git rebase -i'
+alias grbim='git rebase -i "$(git merge-base HEAD main)"'
 alias grba='git rebase --abort'
 alias grbc='git rebase --continue'
 

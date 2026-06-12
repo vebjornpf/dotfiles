@@ -17,6 +17,7 @@ cd "$CONFIG_DIR" || exit 1
 
 # Common packages — stowed on every platform
 packages=(
+  jira
   zsh
   nvim
   tmux

@@ -2,17 +2,17 @@
 
 set -euo pipefail
 
-state_dir="$HOME/git/daily/jira"
+lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$lib_dir/env.sh"
+
+state_dir="${JIRA_STATE_DIR:-$HOME/git/daily/jira}"
 status_file="$state_dir/sync-status.json"
 
 usage() {
   cat >&2 <<'EOF'
-Usage: jira-sync [mywork|backlog ...]
+Usage: jira sync [mywork|backlog]
 
-No arguments syncs all currently supported targets.
-Currently supported targets:
-  mywork
-  backlog
+No arguments sync all supported targets.
 EOF
 }
 
@@ -26,16 +26,28 @@ ensure_status_file() {
   fi
 }
 
+write_completion_file() {
+  local target="$1"
+  local snapshot_file="$2"
+  local completion_file
+
+  completion_file="$state_dir/${target}-completion.tsv"
+
+  jq -r '
+    .[]
+    | [(.key // ""), (.fields.status.name // ""), (.fields.summary // "")]
+    | @tsv
+  ' "$snapshot_file" >"$completion_file"
+}
+
 target_query() {
   case "$1" in
     mywork)
       printf '%s\n' 'assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC'
       ;;
     backlog)
-      printf '%s\n' 'project = TDX AND status = Backlog AND issuetype not in subTaskIssueTypes() ORDER BY created DESC'
-      ;;
-    *)
-      return 1
+      require_jira_backlog_jql
+      printf '%s\n' "$JIRA_BACKLOG_JQL"
       ;;
   esac
 }
@@ -127,12 +139,8 @@ sync_target() {
   local query fields current_file timestamp
   local tmpjson tmperr count error_message
 
-  query="$(target_query "$target")" || {
-    echo "Unsupported jira-sync target: $target" >&2
-    return 1
-  }
+  query="$(target_query "$target")"
   fields="$(target_fields)"
-
   current_file="$state_dir/${target}-current.json"
   timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
@@ -146,6 +154,9 @@ sync_target() {
     count="$(jq 'length' "$tmpjson")"
 
     mv "$tmpjson" "$current_file"
+    if [[ "$target" == "mywork" ]]; then
+      write_completion_file "$target" "$current_file"
+    fi
     update_status_success "$target" "$timestamp" "$query" "$count"
     printf 'Synced %s: %s items\n' "$target" "$count"
   else
@@ -156,7 +167,7 @@ sync_target() {
 
     update_status_error "$target" "$timestamp" "$query" "$error_message"
     echo "Failed syncing $target: $error_message" >&2
-    return 1
+    exit 1
   fi
 }
 
@@ -168,7 +179,10 @@ main() {
   ensure_status_file
 
   if (( $# == 0 )); then
-    targets=(mywork backlog)
+    targets=(mywork)
+    if has_jira_backlog_jql; then
+      targets+=(backlog)
+    fi
   else
     targets=("$@")
   fi
@@ -177,13 +191,13 @@ main() {
     case "$target" in
       mywork|backlog)
         ;;
-      -h|--help)
+      -h|--help|help)
         usage
         exit 0
         ;;
       *)
         usage
-        echo "Unsupported jira-sync target: $target" >&2
+        echo "Unsupported jira sync target: $target" >&2
         exit 1
         ;;
     esac
