@@ -2,10 +2,16 @@
 
 set -euo pipefail
 
-status_file="$HOME/git/daily/jira/sync-status.json"
+lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$lib_dir/env.sh"
+
+state_dir="${JIRA_STATE_DIR:-$HOME/git/daily/jira}"
+status_file="$state_dir/sync-status.json"
 target="${1:-mywork}"
 b64="${2:-}"
 wrap_width="${FZF_PREVIEW_COLUMNS:-80}"
+
+require_jira_base_url
 
 if [[ "$wrap_width" -lt 20 ]]; then
   wrap_width=80
@@ -23,7 +29,7 @@ if [[ -z "$b64" ]]; then
   exit 0
 fi
 
-printf '%s' "$b64" | base64 --decode | jq -r --arg last_sync "$last_sync" '
+printf '%s' "$b64" | base64 --decode | jq -r --arg last_sync "$last_sync" --arg base_url "${JIRA_BASE_URL%/}" '
   def repeat($s; $n):
     reduce range(0; $n) as $i (""; . + $s);
 
@@ -88,7 +94,7 @@ printf '%s' "$b64" | base64 --decode | jq -r --arg last_sync "$last_sync" '
     "priority  " + ($issue.fields.priority.name // ""),
     "assignee  " + ($issue.fields.assignee.displayName // "Unassigned"),
     "reporter  " + ($issue.fields.reporter.displayName // "Unknown"),
-    "url       https://elhub.atlassian.net/browse/" + $issue.key,
+    "url       " + $base_url + "/browse/" + $issue.key,
     (
       if ($issue.fields.description? // null) == null then
         ""

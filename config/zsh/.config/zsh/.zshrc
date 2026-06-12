@@ -33,5 +33,11 @@ for f in "$ZDOTDIR"/*.zsh; do
   source "$f"
 done
 
+# Source feature-owned zsh integrations.
+for f in "$HOME"/.config/*/zsh/*.zsh(N); do
+  [[ "$f" == "$ZDOTDIR"/* ]] && continue
+  source "$f"
+done
+
 # SSH agent via keychain (Linux / servers)
 command -v keychain >/dev/null && eval "$(keychain --quiet --eval ~/.ssh/github)"
