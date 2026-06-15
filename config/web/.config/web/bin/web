@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+WEB_HOME="${WEB_HOME:-$HOME/.config/web}"
+
+# Optional local overrides: add WEB_LINK_ARGOCD_* entries here
+# ~/.config/local/web.zsh
+[[ -f "$HOME/.config/local/web.zsh" ]] && source "$HOME/.config/local/web.zsh"
+
+open_url() {
+  local url="$1"
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" >/dev/null 2>&1 &
+  elif command -v open >/dev/null 2>&1; then
+    open "$url" >/dev/null 2>&1 &
+  else
+    echo "No supported browser opener found (xdg-open/open)" >&2
+    exit 1
+  fi
+}
+
+usage() {
+  cat <<'EOF'
+Usage: web <command> [args]
+
+Commands:
+  web copilot         open GitHub Copilot usage settings
+  web codex           open OpenAI Codex usage analytics
+  web argocd <env>    open ArgoCD for a given environment
+                      (requires WEB_LINK_ARGOCD_<ENV> in ~/.config/local/web.zsh)
+  web list            list all available shortcuts
+  web --help          show this help
+
+EOF
+}
+
+cmd="${1:-}"
+
+case "$cmd" in
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+  copilot)
+    open_url 'https://github.com/settings/copilot/features'
+    ;;
+  codex)
+    open_url 'https://chatgpt.com/codex/cloud/settings/analytics#usage'
+    ;;
+  argocd)
+    env="${2:-}"
+    if [[ -z "$env" ]]; then
+      echo "Usage: web argocd <env>" >&2
+      exit 1
+    fi
+    var="WEB_LINK_ARGOCD_$(echo "$env" | tr '[:lower:]' '[:upper:]')"
+    url="${!var:-}"
+    if [[ -z "$url" ]]; then
+      echo "No ArgoCD URL configured for env '$env'." >&2
+      echo "Set $var in ~/.config/local/web.zsh" >&2
+      exit 1
+    fi
+    open_url "$url"
+    ;;
+  list)
+    echo "copilot   https://github.com/settings/copilot/features"
+    echo "codex     https://chatgpt.com/codex/cloud/settings/analytics#usage"
+    # Print any local argocd envs
+    while IFS='=' read -r key val; do
+      if [[ "$key" == WEB_LINK_ARGOCD_* ]]; then
+        env_name="${key#WEB_LINK_ARGOCD_}"
+        printf "argocd %-10s %s\n" "$(echo "$env_name" | tr '[:upper:]' '[:lower:]')" "$val"
+      fi
+    done < <(env | grep '^WEB_LINK_ARGOCD_')
+    ;;
+  "")
+    usage
+    exit 0
+    ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    echo >&2
+    usage >&2
+    exit 1
+    ;;
+esac

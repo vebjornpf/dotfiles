@@ -18,9 +18,7 @@ return {
         bashls = {},
         regal = {},
         stylua = {},
-        kotlin_lsp = {
-          cmd = { '/home/vebjorn.fjeldberg/.local/opt/kotlin-lsp/kotlin-server-262.7569.0/bin/intellij-server', '--stdio' },
-        },
+        kotlin_lsp = {},
         lua_ls = {
           on_init = function(client)
             client.server_capabilities.documentFormattingProvider = false
@@ -54,7 +52,7 @@ return {
       }
 
       local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, { 'shellcheck', 'shfmt' })
+      vim.list_extend(ensure_installed, { 'ktlint', 'shellcheck', 'shfmt' })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 

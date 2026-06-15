@@ -19,7 +19,7 @@ _jira() {
   local -a item_actions
   local completion_file
   local -a task_keys task_display
-  local key task_status summary
+  local key task_status summary mywork_target
 
   top_level=(backlog board mywork sync)
   board_commands=(open)
@@ -28,18 +28,20 @@ _jira() {
   item_actions=(open cp cpk)
   completion_file="$JIRA_STATE_DIR/mywork-completion.tsv"
 
+  if (( CURRENT == 2 )); then
+    compadd -- "${top_level[@]}"
+    return
+  fi
+
   case "${words[2]-}" in
-    "")
-      compadd -- $top_level
-      ;;
     sync)
       if (( CURRENT == 3 )); then
-        compadd -- $sync_targets
+        compadd -- "${sync_targets[@]}"
       fi
       ;;
     board)
       if (( CURRENT == 3 )); then
-        compadd -- $board_commands
+        compadd -- "${board_commands[@]}"
       fi
       ;;
     mywork)
@@ -57,8 +59,12 @@ _jira() {
             compadd -J jira-mywork-tasks -X 'My Tasks' -d task_display -- "${task_keys[@]}"
           fi
         fi
-      elif [[ "${words[3]-}" == [A-Z][A-Z0-9]*-[0-9]* ]] && (( CURRENT >= 4 )); then
-        compadd -- "${item_actions[@]}"
+      elif (( CURRENT == 4 )); then
+        mywork_target="${words[3]-}"
+
+        if [[ "$mywork_target" =~ '^[A-Z][A-Z0-9]*(-[0-9]*)?$' ]]; then
+          compadd -- "${item_actions[@]}"
+        fi
       fi
       ;;
   esac
