@@ -21,7 +21,7 @@ _jira() {
   local -a task_keys task_display
   local key task_status summary mywork_target
 
-  top_level=(backlog board mywork sync)
+  top_level=(backlog board mywork statusline sync)
   board_commands=(open)
   sync_targets=(mywork backlog)
   mywork_commands=(list status)

@@ -8,6 +8,7 @@ Supported commands:
 - `jira mywork <KEY> open`
 - `jira mywork <KEY> cp`
 - `jira mywork <KEY> cpk`
+- `jira statusline`
 - `jira backlog`
 - `jira board`
 - `jira board open`
