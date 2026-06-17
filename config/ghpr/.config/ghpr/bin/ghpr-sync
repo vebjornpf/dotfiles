@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+GHPR_HOME="${GHPR_HOME:-$HOME/.config/ghpr}"
+
+usage() {
+  cat <<'EOF'
+Usage: ghpr sync [target]
+
+Targets:
+  ghpr sync       sync all targets
+  ghpr sync mine  sync my pull requests
+  ghpr sync --help show this help
+EOF
+}
+
+target="${1:-all}"
+
+case "$target" in
+  -h|--help|help)
+    usage
+    ;;
+  all)
+    bash "$GHPR_HOME/lib/ghpr-sync-mine.sh"
+    ;;
+  mine)
+    shift || true
+    if (( $# > 0 )); then
+      echo "Unknown ghpr sync mine argument: $1" >&2
+      echo >&2
+      echo "Usage: ghpr sync mine" >&2
+      exit 1
+    fi
+    bash "$GHPR_HOME/lib/ghpr-sync-mine.sh"
+    ;;
+  *)
+    echo "Unknown ghpr sync target: $target" >&2
+    echo >&2
+    usage >&2
+    exit 1
+    ;;
+esac

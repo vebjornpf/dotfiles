@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+GHPR_HOME="${GHPR_HOME:-$HOME/.config/ghpr}"
+
+usage() {
+  cat <<'EOF'
+Usage: ghpr [command]
+
+Commands:
+  ghpr        open my pull requests picker
+  ghpr this   open current repo pull requests picker
+  ghpr mine   manage my pull requests
+  ghpr mine clean
+  ghpr mine list
+  ghpr mine status
+  ghpr open <repo> <number> [branch]
+  ghpr sync   sync pull request data
+  ghpr sync mine
+  Run `ghpr <command> --help` for command-specific help.
+  ghpr --help show this help
+EOF
+}
+
+if (( $# > 0 )); then
+  case "$1" in
+    -h|--help|help)
+      usage
+      exit 0
+      ;;
+    this)
+      shift
+      if (( $# > 0 )); then
+        echo "Unknown ghpr this argument: $1" >&2
+        echo >&2
+        echo "Usage: ghpr this" >&2
+        exit 1
+      fi
+      exec bash "$GHPR_HOME/lib/this-pick.sh"
+      ;;
+    mine)
+      shift
+      exec "$GHPR_HOME/bin/ghpr-mine" "$@"
+      ;;
+    open)
+      shift
+      bash "$GHPR_HOME/lib/open.sh" "$@"
+      exit 0
+      ;;
+    sync)
+      shift
+      exec "$GHPR_HOME/bin/ghpr-sync" "$@"
+      ;;
+    *)
+      echo "Unknown ghpr argument: $1" >&2
+      echo >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+fi
+
+exec "$GHPR_HOME/bin/ghpr-mine"

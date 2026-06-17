@@ -3,6 +3,7 @@
 set -euo pipefail
 
 JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
+clipboard_lib="$HOME/.config/zsh/lib/clipboard.sh"
 target="${1:-mywork}"
 prompt_label="${2:-Jira My Work}"
 list_script="$JIRA_HOME/lib/list.sh"
@@ -21,8 +22,8 @@ while true; do
     --bind "alt-r:reload(bash $sync_script $target >/dev/null && bash $list_script $target)" \
     --bind "alt-a:execute-silent(acli jira workitem assign --key {2} --assignee @me --yes >/dev/null)+reload(bash $sync_script $target >/dev/null && bash $list_script $target)" \
     --bind "enter:execute-silent(acli jira workitem view {2} --web)+abort" \
-    --bind "alt-c:execute-silent(printf '%s' {2} | xclip -selection clipboard)" \
-    --bind "alt-u:execute-silent(printf '%s' {5} | xclip -selection clipboard)" )
+    --bind "alt-c:execute-silent(bash -lc 'source \"\$0\"; printf %s \"\$1\" | clipboard_copy' \"$clipboard_lib\" {2})" \
+    --bind "alt-u:execute-silent(bash -lc 'source \"\$0\"; printf %s \"\$1\" | clipboard_copy' \"$clipboard_lib\" {5})" )
 
   [[ -z "$selected" ]] && break
 done

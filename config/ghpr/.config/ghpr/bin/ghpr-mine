@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+GHPR_HOME="${GHPR_HOME:-$HOME/.config/ghpr}"
+
+usage() {
+  cat <<'EOF'
+Usage: ghpr mine [command]
+
+Commands:
+  ghpr mine        open my pull requests picker
+  ghpr mine clean
+  ghpr mine list
+  ghpr mine status
+  ghpr mine --help show this help
+EOF
+}
+
+case "${1:-}" in
+  "")
+    exec bash "$GHPR_HOME/lib/mine-pick.sh"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  list)
+    shift
+    if (( $# > 0 )); then
+      echo "Unknown ghpr mine list argument: $1" >&2
+      echo >&2
+      echo "Usage: ghpr mine list" >&2
+      exit 1
+    fi
+    exec bash "$GHPR_HOME/lib/mine-list.sh"
+    ;;
+  clean)
+    shift
+    if (( $# > 0 )); then
+      echo "Unknown ghpr mine clean argument: $1" >&2
+      echo >&2
+      echo "Usage: ghpr mine clean" >&2
+      exit 1
+    fi
+    exec bash "$GHPR_HOME/lib/mine-clean.sh"
+    ;;
+  status)
+    shift
+    if (( $# > 0 )); then
+      echo "Unknown ghpr mine status argument: $1" >&2
+      echo >&2
+      echo "Usage: ghpr mine status" >&2
+      exit 1
+    fi
+    exec bash "$GHPR_HOME/lib/mine-status.sh"
+    ;;
+  *)
+    echo "Unknown ghpr mine argument: $1" >&2
+    echo >&2
+    usage >&2
+    exit 1
+    ;;
+esac
