@@ -4,6 +4,7 @@ set -euo pipefail
 
 lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$lib_dir/env.sh"
+source "$HOME/.config/zsh/lib/clipboard.sh"
 
 key="${1:-}"
 action="${2:-view}"
@@ -29,10 +30,10 @@ case "$action" in
     ;;
   cp)
     url="$(jira_browse_url "$key")"
-    printf '%s' "$url" | xclip -selection clipboard
+    printf '%s' "$url" | clipboard_copy
     ;;
   cpk)
-    printf '%s' "$key" | xclip -selection clipboard
+    printf '%s' "$key" | clipboard_copy
     ;;
   *)
     usage
