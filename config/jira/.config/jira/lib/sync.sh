@@ -10,7 +10,7 @@ status_file="$state_dir/sync-status.json"
 
 usage() {
   cat >&2 <<'EOF'
-Usage: jira sync [mywork|backlog]
+Usage: jira sync [all|mywork]
 
 No arguments sync all supported targets.
 EOF
@@ -26,28 +26,18 @@ ensure_status_file() {
   fi
 }
 
-write_completion_file() {
-  local target="$1"
-  local snapshot_file="$2"
-  local completion_file
-
-  completion_file="$state_dir/${target}-completion.tsv"
-
-  jq -r '
-    .[]
-    | [(.key // ""), (.fields.status.name // ""), (.fields.summary // "")]
-    | @tsv
-  ' "$snapshot_file" >"$completion_file"
+target_state_file() {
+  printf '%s/%s-current.json\n' "$state_dir" "$1"
 }
 
 target_query() {
   case "$1" in
+    all)
+      require_jira_project_key
+      printf '%s\n' "project = $JIRA_PROJECT_KEY AND statusCategory != Done AND (assignee != currentUser() OR assignee is EMPTY) ORDER BY updated DESC"
+      ;;
     mywork)
       printf '%s\n' 'assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC'
-      ;;
-    backlog)
-      require_jira_backlog_jql
-      printf '%s\n' "$JIRA_BACKLOG_JQL"
       ;;
   esac
 }
@@ -134,29 +124,100 @@ update_status_error() {
   mv "$tmpfile" "$status_file"
 }
 
+write_completion_from_file() {
+  local source_file="$1"
+  local output_file="$2"
+  local filter="$3"
+
+  if [[ ! -f "$source_file" ]]; then
+    : >"$output_file"
+    return
+  fi
+
+  jq -r "$filter" "$source_file" >"$output_file"
+}
+
+write_all_completion_file() {
+  local output_file="$state_dir/all-completion.tsv"
+  local all_file mywork_file
+  local -a source_files=()
+
+  all_file="$(target_state_file all)"
+  mywork_file="$(target_state_file mywork)"
+
+  [[ -f "$all_file" ]] && source_files+=("$all_file")
+  [[ -f "$mywork_file" ]] && source_files+=("$mywork_file")
+
+  if (( ${#source_files[@]} == 0 )); then
+    : >"$output_file"
+    return
+  fi
+
+  jq -s -r '
+    [.[].items[]?]
+    | .[]
+    | [(.key // ""), (.fields.status.name // ""), (.fields.summary // "")]
+    | @tsv
+  ' "${source_files[@]}" >"$output_file"
+}
+
+write_derived_files() {
+  local all_file mywork_file
+
+  all_file="$(target_state_file all)"
+  mywork_file="$(target_state_file mywork)"
+
+  write_completion_from_file \
+    "$mywork_file" \
+    "$state_dir/mywork-completion.tsv" \
+    '.items[]? | [(.key // ""), (.fields.status.name // ""), (.fields.summary // "")] | @tsv'
+
+  write_completion_from_file \
+    "$all_file" \
+    "$state_dir/backlog-completion.tsv" \
+    '.items[]? | select((.fields.status.name // "") == "Backlog") | [(.key // ""), (.fields.status.name // ""), (.fields.summary // "")] | @tsv'
+
+  write_completion_from_file \
+    "$all_file" \
+    "$state_dir/epics-completion.tsv" \
+    '.items[]? | select((.fields.issuetype.name // "") == "Epic") | [(.key // ""), (.fields.status.name // ""), (.fields.summary // "")] | @tsv'
+
+  write_all_completion_file
+}
+
 sync_target() {
   local target="$1"
   local query fields current_file timestamp
-  local tmpjson tmperr count error_message
+  local tmpjson tmperr tmpstate count error_message
 
   query="$(target_query "$target")"
   fields="$(target_fields)"
-  current_file="$state_dir/${target}-current.json"
+  current_file="$(target_state_file "$target")"
   timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
   update_status_attempt "$target" "$timestamp" "$query"
 
   tmpjson="$(mktemp)"
   tmperr="$(mktemp)"
-  trap 'rm -f "${tmpjson:-}" "${tmperr:-}"' RETURN
+  tmpstate="$(mktemp)"
+  trap 'rm -f "${tmpjson:-}" "${tmperr:-}" "${tmpstate:-}"' RETURN
 
   if acli jira workitem search --jql "$query" --fields "$fields" --paginate --json >"$tmpjson" 2>"$tmperr"; then
     count="$(jq 'length' "$tmpjson")"
 
-    mv "$tmpjson" "$current_file"
-    if [[ "$target" == "mywork" ]]; then
-      write_completion_file "$target" "$current_file"
-    fi
+    jq -n \
+      --arg last_synced_at "$timestamp" \
+      --arg query "$query" \
+      --slurpfile items "$tmpjson" \
+      '{
+        last_synced_at: $last_synced_at,
+        query: $query,
+        count: ($items[0] | length),
+        items: $items[0]
+      }' >"$tmpstate"
+
+    mv "$tmpstate" "$current_file"
+    write_derived_files
     update_status_success "$target" "$timestamp" "$query" "$count"
     printf 'Synced %s: %s items\n' "$target" "$count"
   else
@@ -179,17 +240,14 @@ main() {
   ensure_status_file
 
   if (( $# == 0 )); then
-    targets=(mywork)
-    if has_jira_backlog_jql; then
-      targets+=(backlog)
-    fi
+    targets=(all mywork)
   else
     targets=("$@")
   fi
 
   for target in "${targets[@]}"; do
     case "$target" in
-      mywork|backlog)
+      all|mywork)
         ;;
       -h|--help|help)
         usage

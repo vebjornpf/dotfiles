@@ -6,7 +6,6 @@ lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$lib_dir/env.sh"
 
 state_dir="${JIRA_STATE_DIR:-$HOME/git/daily/jira}"
-status_file="$state_dir/sync-status.json"
 target="${1:-mywork}"
 b64="${2:-}"
 wrap_width="${FZF_PREVIEW_COLUMNS:-80}"
@@ -17,12 +16,26 @@ if [[ "$wrap_width" -lt 20 ]]; then
   wrap_width=80
 fi
 
-last_sync="Never"
+last_sync="$({
+  case "$target" in
+    mywork)
+      jq -r '.last_synced_at // empty' "$state_dir/mywork-current.json" 2>/dev/null
+      ;;
+    backlog|epics)
+      jq -r '.last_synced_at // empty' "$state_dir/all-current.json" 2>/dev/null
+      ;;
+    all)
+      source_files=()
+      [[ -f "$state_dir/all-current.json" ]] && source_files+=("$state_dir/all-current.json")
+      [[ -f "$state_dir/mywork-current.json" ]] && source_files+=("$state_dir/mywork-current.json")
+      if (( ${#source_files[@]} > 0 )); then
+        jq -s -r '[.[].last_synced_at // empty] | map(select(length > 0)) | sort | last // empty' "${source_files[@]}" 2>/dev/null
+      fi
+      ;;
+  esac
+} || true)"
 
-if [[ -f "$status_file" ]]; then
-  synced_at="$(jq -r --arg target "$target" '.targets[$target].last_sync_at // .last_sync_at // empty' "$status_file")"
-  [[ -n "$synced_at" ]] && last_sync="$synced_at"
-fi
+[[ -n "$last_sync" ]] || last_sync="Never"
 
 if [[ -z "$b64" ]]; then
   printf 'last sync %s\n' "$last_sync"

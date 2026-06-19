@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
+
+usage() {
+  cat <<'EOF'
+Usage: jira item <KEY> [view|open|cp|cpk]
+
+Commands:
+  jira item <KEY>        view a Jira item via acli jira workitem view
+  jira item <KEY> open   open a Jira item in the browser
+  jira item <KEY> cp     copy Jira item URL
+  jira item <KEY> cpk    copy Jira item key
+  jira item --help       show this help
+EOF
+}
+
+key="${1:-}"
+
+case "$key" in
+  -h|--help|help)
+    usage
+    ;;
+  [A-Z][A-Z0-9]*-[0-9]*)
+    shift
+    exec bash "$JIRA_HOME/lib/item.sh" "$key" "${1:-view}"
+    ;;
+  "")
+    usage >&2
+    exit 1
+    ;;
+  *)
+    echo "Unknown jira item key: $key" >&2
+    echo >&2
+    usage >&2
+    exit 1
+    ;;
+esac

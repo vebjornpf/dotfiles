@@ -8,7 +8,7 @@ status_file="$state_dir/sync-status.json"
 target_label() {
   case "$1" in
     mywork) printf 'MW' ;;
-    backlog) printf 'BL' ;;
+    all) printf 'ALL' ;;
     *) printf '%s' "$1" ;;
   esac
 }
@@ -73,7 +73,7 @@ render_target() {
 }
 
 main() {
-  printf '%s %s' "$(render_target mywork)" "$(render_target backlog)"
+  printf '%s %s' "$(render_target mywork)" "$(render_target all)"
 }
 
 main "$@"

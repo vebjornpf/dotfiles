@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+[[ -f "$HOME/.config/local/jira.zsh" ]] && source "$HOME/.config/local/jira.zsh"
+
+require_jira_project_key() {
+  if [[ -z "${JIRA_PROJECT_KEY:-}" ]]; then
+    echo "JIRA_PROJECT_KEY is not set" >&2
+    echo "Set it in ~/.config/local/jira.zsh, for example:" >&2
+    echo '  export JIRA_PROJECT_KEY="ABC"' >&2
+    exit 1
+  fi
+}
+
 require_jira_base_url() {
   if [[ -z "${JIRA_BASE_URL:-}" ]]; then
     echo "JIRA_BASE_URL is not set" >&2
@@ -21,17 +32,4 @@ require_jira_board_url() {
     echo '  export JIRA_BOARD_URL="https://your-domain.atlassian.net/jira/software/..."' >&2
     exit 1
   fi
-}
-
-require_jira_backlog_jql() {
-  if [[ -z "${JIRA_BACKLOG_JQL:-}" ]]; then
-    echo "JIRA_BACKLOG_JQL is not set" >&2
-    echo "Set it in ~/.config/local/jira.zsh, for example:" >&2
-    echo "  export JIRA_BACKLOG_JQL='project = ABC AND status = Backlog ORDER BY created DESC'" >&2
-    exit 1
-  fi
-}
-
-has_jira_backlog_jql() {
-  [[ -n "${JIRA_BACKLOG_JQL:-}" ]]
 }

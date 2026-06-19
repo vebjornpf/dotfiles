@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
+
+usage() {
+  cat <<'EOF'
+Usage: jira backlog
+
+Commands:
+  jira backlog        open Jira backlog picker
+  jira backlog --help show this help
+EOF
+}
+
+case "${1:-}" in
+  "")
+    exec bash "$JIRA_HOME/lib/pick.sh" backlog "Jira Backlog"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    echo "Unknown jira backlog argument: $1" >&2
+    echo >&2
+    usage >&2
+    exit 1
+    ;;
+esac

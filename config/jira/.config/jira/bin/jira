@@ -11,44 +11,19 @@ Usage: jira [command]
 
 Commands:
   jira        open or select tmux session "daily" and window "jira"
-  jira backlog open Jira backlog picker
-  jira board  open configured Jira board in browser
-  jira board open
-  jira mywork open Jira my work picker
-  jira mywork list
-  jira mywork status
-  jira mywork <KEY>
-  jira mywork <KEY> open
-  jira mywork <KEY> cp
-  jira mywork <KEY> cpk
+  jira backlog    open Jira backlog picker
+  jira board      open configured Jira board in browser
+  jira item <KEY> view a Jira item
+  jira mywork     manage my Jira work
   jira statusline print compact sync ages for tmux
-  jira sync   run Jira sync
-  jira sync mywork
-  jira sync backlog
+  jira sync       run Jira sync
   Private variables can be set in ~/.config/local/jira.zsh:
+    JIRA_PROJECT_KEY
     JIRA_BASE_URL
     JIRA_BOARD_URL
-    JIRA_BACKLOG_JQL
+  Run `jira <command> --help` for command-specific help.
   jira --help show this help
 EOF
-}
-
-open_url() {
-  local url="$1"
-
-  if command -v xdg-open >/dev/null 2>&1; then
-    xdg-open "$url" >/dev/null 2>&1 &
-  elif command -v open >/dev/null 2>&1; then
-    open "$url" >/dev/null 2>&1 &
-  else
-    echo "No supported browser opener found (xdg-open/open)" >&2
-    exit 1
-  fi
-}
-
-open_board() {
-  require_jira_board_url
-  open_url "$JIRA_BOARD_URL"
 }
 
 if (( $# > 0 )); then
@@ -59,70 +34,27 @@ if (( $# > 0 )); then
       ;;
     backlog)
       shift
-      bash "$JIRA_HOME/lib/pick.sh" backlog "Jira Backlog"
-      exit 0
+      exec "$JIRA_HOME/bin/jira-backlog" "$@"
       ;;
     board)
       shift
-      case "${1:-}" in
-        ""|open)
-          open_board
-          ;;
-        *)
-          echo "Unknown jira board argument: $1" >&2
-          echo >&2
-          echo "Usage: jira board" >&2
-          echo "       jira board open" >&2
-          exit 1
-          ;;
-      esac
-      exit 0
+      exec "$JIRA_HOME/bin/jira-board" "$@"
+      ;;
+    item)
+      shift
+      exec "$JIRA_HOME/bin/jira-item" "$@"
       ;;
     mywork)
       shift
-      case "${1:-}" in
-        "")
-          bash "$JIRA_HOME/lib/pick.sh" mywork "Jira My Work"
-          ;;
-        list)
-          bash "$JIRA_HOME/lib/mywork-list.sh"
-          ;;
-        status)
-          bash "$JIRA_HOME/lib/mywork-status.sh"
-          ;;
-        [A-Z][A-Z0-9]*-[0-9]*)
-          bash "$JIRA_HOME/lib/item.sh" "$1" "${2:-view}"
-          ;;
-        *)
-          echo "Unknown jira mywork argument: $1" >&2
-          echo >&2
-          echo "Usage: jira mywork" >&2
-          echo "       jira mywork list" >&2
-          echo "       jira mywork status" >&2
-          echo "       jira mywork <KEY>" >&2
-          echo "       jira mywork <KEY> open" >&2
-          echo "       jira mywork <KEY> cp" >&2
-          echo "       jira mywork <KEY> cpk" >&2
-          exit 1
-          ;;
-      esac
-      exit 0
+      exec "$JIRA_HOME/bin/jira-mywork" "$@"
       ;;
     statusline)
       shift
-      if (( $# > 0 )); then
-        echo "Unknown jira statusline argument: $1" >&2
-        echo >&2
-        echo "Usage: jira statusline" >&2
-        exit 1
-      fi
-      bash "$JIRA_HOME/lib/statusline-sync.sh"
-      exit 0
+      exec "$JIRA_HOME/bin/jira-statusline" "$@"
       ;;
     sync)
       shift
-      bash "$JIRA_HOME/lib/sync.sh" "$@"
-      exit 0
+      exec "$JIRA_HOME/bin/jira-sync" "$@"
       ;;
     *)
       echo "Unknown jira argument: $1" >&2
@@ -133,4 +65,4 @@ if (( $# > 0 )); then
   esac
 fi
 
-bash "$HOME/.config/tmux/scripts/daily-window-session" jira "true"
+exec bash "$HOME/.config/tmux/scripts/daily-window-session" jira "true"

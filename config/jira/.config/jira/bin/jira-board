@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
+source "$JIRA_HOME/lib/env.sh"
+
+usage() {
+  cat <<'EOF'
+Usage: jira board [command]
+
+Commands:
+  jira board        open configured Jira board in browser
+  jira board open
+  jira board --help show this help
+EOF
+}
+
+open_url() {
+  local url="$1"
+
+  if command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" >/dev/null 2>&1 &
+  elif command -v open >/dev/null 2>&1; then
+    open "$url" >/dev/null 2>&1 &
+  else
+    echo "No supported browser opener found (xdg-open/open)" >&2
+    exit 1
+  fi
+}
+
+case "${1:-}" in
+  ""|open)
+    require_jira_board_url
+    open_url "$JIRA_BOARD_URL"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    echo "Unknown jira board argument: $1" >&2
+    echo >&2
+    usage >&2
+    exit 1
+    ;;
+esac

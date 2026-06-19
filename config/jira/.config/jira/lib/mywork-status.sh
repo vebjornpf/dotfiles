@@ -46,10 +46,10 @@ ordered_statuses=(
   "Done"
 )
 
-all_statuses_json="$(jq -r 'map(.fields.status.name // "Unknown") | unique | .[]' "$snapshot_file")"
+all_statuses_json="$(jq -r '.items | map(.fields.status.name // "Unknown") | unique | .[]' "$snapshot_file")"
 
 for status_name in "${ordered_statuses[@]}"; do
-  issues_json="$(jq --arg status "$status_name" '[.[] | select((.fields.status.name // "Unknown") == $status)]' "$snapshot_file")"
+  issues_json="$(jq --arg status "$status_name" '[.items[] | select((.fields.status.name // "Unknown") == $status)]' "$snapshot_file")"
   print_section "$status_name" "$issues_json"
 done
 
@@ -62,6 +62,6 @@ while IFS= read -r status_name; do
       ;;
   esac
 
-  issues_json="$(jq --arg status "$status_name" '[.[] | select((.fields.status.name // "Unknown") == $status)]' "$snapshot_file")"
+  issues_json="$(jq --arg status "$status_name" '[.items[] | select((.fields.status.name // "Unknown") == $status)]' "$snapshot_file")"
   print_section "$status_name" "$issues_json"
 done <<<"$all_statuses_json"

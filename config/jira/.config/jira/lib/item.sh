@@ -12,7 +12,7 @@ url=""
 
 usage() {
   cat >&2 <<'EOF'
-Usage: jira <scope> <KEY> [open|cp|cpk]
+Usage: jira item <KEY> [open|cp|cpk]
 EOF
 }
 
