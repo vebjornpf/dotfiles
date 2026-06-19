@@ -13,6 +13,7 @@ Commands:
   jira        open or select tmux session "daily" and window "jira"
   jira backlog    open Jira backlog picker
   jira board      open configured Jira board in browser
+  jira create     create a Jira work item interactively
   jira item <KEY> view a Jira item
   jira mywork     manage my Jira work
   jira statusline print compact sync ages for tmux
@@ -39,6 +40,10 @@ if (( $# > 0 )); then
     board)
       shift
       exec "$JIRA_HOME/bin/jira-board" "$@"
+      ;;
+    create)
+      shift
+      exec "$JIRA_HOME/bin/jira-create" "$@"
       ;;
     item)
       shift

@@ -12,9 +12,25 @@ Supported commands:
 - `jira backlog`
 - `jira board`
 - `jira board open`
+- `jira create`
 - `jira sync`
 - `jira sync all`
 - `jira sync mywork`
+
+`jira create` prompts for title in the terminal, opens `$EDITOR` for the description, and uses pickers for issue type, component, priority, and assignment.
+
+It fetches issue types from live Jira project metadata.
+
+Parent rules depend on the selected issue type:
+- sub-task types require a parent task
+- hierarchy level `0` types require an epic
+- higher-level types like `Epic` do not prompt for a parent
+
+Selection sources:
+- epics: `epics-completion.tsv`
+- subtask parents: `all-completion.tsv`
+- components: live Jira project components from `acli jira project view --key "$JIRA_PROJECT_KEY" --json`
+- issue types: live Jira project issue types from `acli jira project view --key "$JIRA_PROJECT_KEY" --json`
 
 Local config:
 - `~/.config/local/jira.zsh`

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
+
+exec bash "$JIRA_HOME/lib/create.sh" "$@"

@@ -15,13 +15,14 @@ if [[ -d "$jira_bin_dir" && ":$PATH:" != *":$jira_bin_dir:"* ]]; then
 fi
 
 _jira() {
-  local -a top_level sync_targets mywork_commands board_commands
+  local -a top_level sync_targets mywork_commands board_commands create_commands
   local -a item_actions
   local item_completion_file mywork_completion_file
   local -a task_keys task_display
   local key task_status summary
 
-  top_level=(backlog board item mywork statusline sync)
+  top_level=(backlog board create item mywork statusline sync)
+  create_commands=()
   board_commands=(open)
   sync_targets=(all mywork)
   mywork_commands=(list status)
@@ -43,6 +44,11 @@ _jira() {
     board)
       if (( CURRENT == 3 )); then
         compadd -- "${board_commands[@]}"
+      fi
+      ;;
+    create)
+      if (( CURRENT == 3 )) && (( ${#create_commands[@]} > 0 )); then
+        compadd -- "${create_commands[@]}"
       fi
       ;;
     item)
