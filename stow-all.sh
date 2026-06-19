@@ -19,6 +19,7 @@ cd "$CONFIG_DIR" || exit 1
 packages=(
   jira
   ghpr
+  ghrepo
   web
   zsh
   nvim

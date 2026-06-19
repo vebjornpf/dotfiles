@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+GHREPO_HOME="${GHREPO_HOME:-$HOME/.config/ghrepo}"
+
+usage() {
+  cat <<'EOF'
+Usage: ghrepo sync
+
+Syncs repos.tsv from the configured GitHub org.
+EOF
+}
+
+case "${1:-}" in
+  "")
+    exec bash "$GHREPO_HOME/lib/sync-repos.sh"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    echo "Unknown ghrepo sync argument: $1" >&2
+    echo >&2
+    usage >&2
+    exit 1
+    ;;
+esac
