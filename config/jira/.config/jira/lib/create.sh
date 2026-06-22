@@ -4,6 +4,7 @@ set -euo pipefail
 
 lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$lib_dir/env.sh"
+source "$lib_dir/actions.sh"
 
 state_dir="${JIRA_STATE_DIR:-$HOME/git/daily/jira}"
 sync_script="$lib_dir/sync.sh"
@@ -205,12 +206,6 @@ create_issue() {
   printf '%s\n' "$key"
 }
 
-assign_issue_to_me() {
-  local key="$1"
-
-  acli jira workitem assign --key "$key" --assignee @me --yes >/dev/null
-}
-
 ensure_backlog_status() {
   local key="$1"
   local status
@@ -218,7 +213,7 @@ ensure_backlog_status() {
   status="$(acli jira workitem view "$key" --fields status --json | jq -r '.fields.status.name // empty')"
 
   if [[ "$status" != "Backlog" ]]; then
-    acli jira workitem transition --key "$key" --status Backlog --yes >/dev/null
+    transition_issue_to_status "$key" Backlog
   fi
 }
 

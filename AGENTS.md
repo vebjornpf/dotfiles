@@ -3,6 +3,11 @@
 This repo manages personal configuration files using GNU Stow.
 Each tool has a package under `config/` that gets symlinked into `$HOME`.
 
+## Response style
+
+- Answer concisely by default
+- Prefer short, direct responses unless the user asks for more detail
+
 ## Stow layout rule
 
 Every file must live inside the correct XDG subtree or stow will

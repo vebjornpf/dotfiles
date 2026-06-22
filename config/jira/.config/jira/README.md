@@ -8,10 +8,12 @@ Supported commands:
 - `jira item <KEY> open`
 - `jira item <KEY> cp`
 - `jira item <KEY> cpk`
+- `jira item <KEY> move`
 - `jira statusline`
 - `jira backlog`
 - `jira board`
 - `jira board open`
+- `jira component`
 - `jira create`
 - `jira sync`
 - `jira sync all`
@@ -20,6 +22,12 @@ Supported commands:
 `jira create` prompts for title in the terminal, opens `$EDITOR` for the description, and uses pickers for issue type, component, priority, and assignment.
 
 It fetches issue types from live Jira project metadata.
+
+`jira component` lets you fuzzy-pick one component, then opens a picker with all non-done issues using that component.
+
+Picker shortcuts:
+- `alt-a` assign selected issue to you
+- `alt-s` pick a status and transition the selected issue
 
 Parent rules depend on the selected issue type:
 - sub-task types require a parent task

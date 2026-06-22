@@ -21,12 +21,14 @@ _jira() {
   local -a task_keys task_display
   local key task_status summary
 
-  top_level=(backlog board create item mywork statusline sync)
+  top_level=(backlog board component create item mywork statusline sync)
   create_commands=()
   board_commands=(open)
   sync_targets=(all mywork)
-  mywork_commands=(list status)
-  item_actions=(open cp cpk)
+  mywork_commands=(list status, sync)
+  item_actions=(open cp cpk move)
+  local -a move_statuses
+  move_statuses=(backlog "in progress" qa done)
   item_completion_file="$JIRA_STATE_DIR/all-completion.tsv"
   mywork_completion_file="$JIRA_STATE_DIR/mywork-completion.tsv"
 
@@ -46,9 +48,9 @@ _jira() {
         compadd -- "${board_commands[@]}"
       fi
       ;;
-    create)
-      if (( CURRENT == 3 )) && (( ${#create_commands[@]} > 0 )); then
-        compadd -- "${create_commands[@]}"
+    component)
+      if (( CURRENT == 3 )); then
+        compadd -- sync
       fi
       ;;
     item)
@@ -67,6 +69,10 @@ _jira() {
       elif (( CURRENT == 4 )); then
         if [[ "${words[3]-}" =~ '^[A-Z][A-Z0-9]*(-[0-9]*)?$' ]]; then
           compadd -- "${item_actions[@]}"
+        fi
+      elif (( CURRENT == 5 )); then
+        if [[ "${words[4]-}" == "move" ]]; then
+          compadd -- "${move_statuses[@]}"
         fi
       fi
       ;;
@@ -87,6 +93,10 @@ _jira() {
       elif (( CURRENT == 4 )) && [[ -f "$mywork_completion_file" ]]; then
         if [[ "${words[3]-}" =~ '^[A-Z][A-Z0-9]*(-[0-9]*)?$' ]]; then
           compadd -- "${item_actions[@]}"
+        fi
+      elif (( CURRENT == 5 )); then
+        if [[ "${words[4]-}" == "move" ]]; then
+          compadd -- "${move_statuses[@]}"
         fi
       fi
       ;;

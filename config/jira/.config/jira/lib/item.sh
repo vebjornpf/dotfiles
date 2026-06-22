@@ -4,15 +4,17 @@ set -euo pipefail
 
 lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$lib_dir/env.sh"
+source "$lib_dir/actions.sh"
 source "$HOME/.config/zsh/lib/clipboard.sh"
 
 key="${1:-}"
 action="${2:-view}"
+status_arg="${3:-}"
 url=""
 
 usage() {
   cat >&2 <<'EOF'
-Usage: jira item <KEY> [open|cp|cpk]
+Usage: jira item <KEY> [open|cp|cpk|move [backlog|in progress|qa|done]]
 EOF
 }
 
@@ -34,6 +36,22 @@ case "$action" in
     ;;
   cpk)
     printf '%s' "$key" | clipboard_copy
+    ;;
+  move)
+    if [[ -n "$status_arg" ]]; then
+      case "${status_arg,,}" in
+        backlog)       transition_issue_to_status "$key" "Backlog" ;;
+        "in progress") transition_issue_to_status "$key" "In Progress" ;;
+        qa)            transition_issue_to_status "$key" "QA" ;;
+        done)          transition_issue_to_status "$key" "Done" ;;
+        *)
+          echo "Unknown status: $status_arg. Valid: backlog, in progress, qa, done" >&2
+          exit 1
+          ;;
+      esac
+    else
+      pick_and_transition_issue_status "$key"
+    fi
     ;;
   *)
     usage
