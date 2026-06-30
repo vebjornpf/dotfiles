@@ -8,6 +8,23 @@ Each tool has a package under `config/` that gets symlinked into `$HOME`.
 - Answer concisely by default
 - Prefer short, direct responses unless the user asks for more detail
 
+## Backlog
+
+The repo backlog lives in `backlog.md`.
+
+Rules:
+
+- Open items live under `## Items`
+- Each open item must be a single-line bullet starting with `- [ ]`
+- Format: `- [ ] <area>: <task>` or `- [ ] <area>: <task> (`backlog/<slug>.md`)`
+- Simple items may stay as one line in `backlog.md`
+- Items that need findings, investigation notes, or a proposed approach should link to a detail file under `backlog/`
+- When a detail file is linked, agents should read it before starting work
+- While investigating or planning, agents should update the linked detail file with findings and proposed approach
+- Agents may append new backlog items when they discover worthwhile follow-up work
+- Agents should remove an item after completing it, and delete the linked detail file if it is no longer useful
+- Unless the user specifies otherwise, agents should pick the first open backlog item
+
 ## Stow layout rule
 
 Every file must live inside the correct XDG subtree or stow will

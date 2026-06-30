@@ -4,6 +4,7 @@ set -euo pipefail
 
 repo_full="${1:-}"
 pr_number="${2:-}"
+branch_name="${3:-}"
 
 if [[ -z "$pr_number" ]]; then
   echo "Usage: ghpr open <org/repo> <pr_number> [branch]" >&2
@@ -17,7 +18,15 @@ fi
 
 repo_short="${repo_full##*/}"
 clone_path="$HOME/git/$repo_short"
-local_branch="pr-$pr_number"
+
+case "$branch_name" in
+  ""|null|not_available)
+    local_branch="pr-$pr_number"
+    ;;
+  *)
+    local_branch="$branch_name"
+    ;;
+esac
 
 if [[ ! -d "$clone_path" ]]; then
   echo "Cloning $repo_full..."

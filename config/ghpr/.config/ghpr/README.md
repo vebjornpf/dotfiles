@@ -1,7 +1,7 @@
 # ghpr
 
 Supported commands:
-- `ghpr this`
+- `ghpr this` - opens current repo PRs and checks out the selected PR branch locally when available
 - `ghpr mine`
 - `ghpr mine clean`
 - `ghpr mine list`
@@ -22,3 +22,4 @@ State:
 
 Notes:
 - `ghpr this` runs live against the current GitHub repo and does not store state
+- `ghpr this` and `ghpr mine` use the PR head branch name for local checkout when available, with `pr-<number>` as fallback
