@@ -20,6 +20,7 @@ packages=(
   jira
   ghpr
   ghrepo
+  sonar
   web
   zsh
   nvim

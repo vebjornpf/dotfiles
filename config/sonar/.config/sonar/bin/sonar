@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SONAR_HOME="${SONAR_HOME:-$HOME/.config/sonar}"
+source "$SONAR_HOME/lib/common.sh"
+
+usage() {
+  cat <<'EOF'
+Usage: sonar <command> [options]
+
+Commands:
+  sonar sync [quality...]     fetch Sonar issues, cache raw payloads, and export repo files
+  sonar rules [quality...]    fetch Sonar rule guidance for exported issues
+  sonar export [quality...]   export repo files from cached payloads
+  sonar status [quality...]   print issue counts from exported repo files
+  sonar path [quality]        print cache and export paths
+  sonar web                   open the current repo's Sonar project in the browser
+
+Qualities:
+  maintainability
+  security
+  reliability
+  all                         default for sync, export, and status
+
+Repo config:
+  .sonar/project
+    projectKey=<sonar-project-key>
+    branch=main
+
+Repo output:
+  .sonar/raw/issues-<quality>.json
+  .sonar/issues-<quality>.json
+
+Local config:
+  ~/.config/local/sonar.zsh
+    export SONAR_BASE_URL="https://sonar.example.com"
+    export SONAR_TOKEN="<token>"
+EOF
+}
+
+main() {
+  local command="${1:-help}"
+
+  case "$command" in
+    sync)
+      shift || true
+      sonar_sync "$@"
+      ;;
+    rules)
+      shift || true
+      sonar_rules "$@"
+      ;;
+    export)
+      shift || true
+      sonar_export "$@"
+      ;;
+    status)
+      shift || true
+      sonar_status "$@"
+      ;;
+    path)
+      shift || true
+      sonar_path "$@"
+      ;;
+    web)
+      shift || true
+      sonar_web "$@"
+      ;;
+    -h|--help|help)
+      usage
+      ;;
+    *)
+      echo "Unknown sonar command: $command" >&2
+      echo >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

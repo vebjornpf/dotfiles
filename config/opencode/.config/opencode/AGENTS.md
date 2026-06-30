@@ -18,3 +18,7 @@
   - `command`: the full command exactly as shown, including any `<placeholder>` values
   - `description`: a short phrase describing what the command does (e.g. "list PRs assigned to user")
   - `tool`: the main CLI tool used (e.g. `gh`, `git`, `npm`, `docker`)
+
+# Local Skills
+
+- Use the `sonar-workflow` skill when working in repos that use `.sonar/project`, `sonar sync`, and generated `.sonar/issues-*.json` files.
