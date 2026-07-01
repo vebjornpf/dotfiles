@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+GHPR_HOME="${GHPR_HOME:-$HOME/.config/ghpr}"
+source "$GHPR_HOME/lib/common.sh"
+
 repo_full="${1:-}"
 pr_number="${2:-}"
 branch_name="${3:-}"
@@ -16,8 +19,7 @@ if [[ -z "$repo_full" ]]; then
   repo_full=$(echo "$remote" | sed 's|.*github.com[:/]\(.*\)\.git|\1|' | sed 's|.*github.com[:/]\(.*\)|\1|')
 fi
 
-repo_short="${repo_full##*/}"
-clone_path="$HOME/git/$repo_short"
+clone_path="$(repo_clone_path "$repo_full")"
 
 case "$branch_name" in
   ""|null|not_available)
@@ -28,16 +30,7 @@ case "$branch_name" in
     ;;
 esac
 
-if [[ ! -d "$clone_path" ]]; then
-  echo "Cloning $repo_full..."
-  if git clone "git@github.com:$repo_full" "$clone_path"; then
-    echo "Clone complete."
-  else
-    echo "Clone failed. Press enter to dismiss."
-    read -r
-    exit 1
-  fi
-fi
+ensure_repo_clone "$repo_full"
 
 cd "$clone_path"
 printf 'Checking out PR #%s into %s\n' "$pr_number" "$local_branch"

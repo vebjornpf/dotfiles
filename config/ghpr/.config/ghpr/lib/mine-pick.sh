@@ -3,7 +3,9 @@
 set -euo pipefail
 
 GHPR_HOME="${GHPR_HOME:-$HOME/.config/ghpr}"
+source "$GHPR_HOME/lib/common.sh"
 clipboard_lib="$HOME/.config/zsh/lib/clipboard.sh"
+tmux_sessionizer="$HOME/.config/tmux/scripts/tmux-sessionizer"
 
 list_cmd="bash $GHPR_HOME/lib/mine-list.sh"
 reload_cmd="$GHPR_HOME/bin/ghpr-sync mine >/dev/null && bash $GHPR_HOME/lib/mine-list.sh"
@@ -11,7 +13,7 @@ reload_cmd="$GHPR_HOME/bin/ghpr-sync mine >/dev/null && bash $GHPR_HOME/lib/mine
 while true; do
   selected=$(fzf --ansi --prompt="My PRs > " \
     --delimiter='\t' --with-nth=1,2,3 \
-    --header=$'enter: open in nvim | alt-o: open in web | alt-a: approve | alt-m: merge | alt-d: toggle draft | alt-c: copy URL | alt-r: reload' \
+    --header=$'enter: tmux repo session | alt-o: open in web | alt-a: approve | alt-m: merge | alt-d: toggle draft | alt-c: copy URL | alt-r: reload' \
     --preview "bash $GHPR_HOME/lib/mine-preview.sh {2} {1}" \
     --preview-window=up:75% \
     --phony --bind "start:reload($list_cmd)" \
@@ -23,14 +25,14 @@ while true; do
     --bind "alt-c:execute-silent(bash -lc 'source \"\$0\"; gh pr view \"\$1\" --repo \"\$2\" --json url -q .url | clipboard_copy' \"$clipboard_lib\" {1} {2})" \
     --expect=enter)
 
-  line=$(printf '%s' "$selected" | tail -n +2)
+  line=$(printf '%s' "$selected" | sed -n '2p')
 
   [[ -z "$line" ]] && break
 
-  pr_number=$(printf '%s' "$line" | cut -f1)
   repo=$(printf '%s' "$line" | cut -f2)
-  branch=$(bash "$GHPR_HOME/lib/mine-item.sh" "$repo" "$pr_number" | jq -r '.details.branches.head')
+  clone_path="$(repo_clone_path "$repo")"
 
-  bash "$GHPR_HOME/lib/open.sh" "$repo" "$pr_number" "$branch"
+  ensure_repo_clone "$repo"
+  bash "$tmux_sessionizer" "$clone_path"
   break
 done

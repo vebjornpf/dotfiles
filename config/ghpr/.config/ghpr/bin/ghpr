@@ -10,7 +10,7 @@ Usage: ghpr [command]
 
 Commands:
   ghpr        open my pull requests picker
-  ghpr this   open current repo pull requests picker and check out the PR branch locally
+  ghpr this   open current repo pull requests picker and locally check out the selected PR branch
   ghpr mine   manage my pull requests
   ghpr mine clean
   ghpr mine list

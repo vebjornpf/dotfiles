@@ -10,7 +10,7 @@ list_cmd="bash $GHPR_HOME/lib/this-list.sh"
 while true; do
   selected=$(fzf --ansi --prompt="Repo PRs > " \
     --delimiter='\t' --with-nth=1,2,3 \
-    --header=$'enter: open in nvim | alt-o: open in web | alt-a: approve | alt-m: merge | alt-d: toggle draft | alt-c: copy URL | alt-r: reload' \
+    --header=$'enter: checkout | alt-o: open in web | alt-a: approve | alt-m: merge | alt-d: toggle draft | alt-c: copy URL | alt-r: reload' \
     --preview "bash $GHPR_HOME/lib/this-preview.sh {4}" \
     --preview-window=up:75% \
     --phony --bind "start:reload($list_cmd)" \

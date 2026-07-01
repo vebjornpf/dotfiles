@@ -46,6 +46,7 @@ alias gsts='git stash show'
 
 # Diff/Log
 alias gd='git diff'
+alias gdm='nvim -c "DiffviewOpen main...HEAD"'
 alias gds='git diff --staged'
 alias gl='git log --oneline --graph'
 alias glf='git log --stat --decorate'
