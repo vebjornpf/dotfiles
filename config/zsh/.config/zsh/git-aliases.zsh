@@ -121,22 +121,23 @@ gmkw() {
 # Clever way of switching between branhes
 gfs() {
   git fetch --all --prune >/dev/null 2>&1
-  git update-ref refs/heads/main refs/remotes/origin/main
   local branch
   branch=$(git branch --color=always | grep -v '/HEAD' | sed 's/^..//' \
     | fzf --ansi \
-          --preview-window=default \
-          --bind "ctrl-d:execute(
+          --header=$'enter: switch | alt-s: switch now | alt-d: delete | alt-b: create from selected' \
+          --preview-window=up:75% \
+          --bind "alt-d:execute(
             if [[ {} != 'main' && {} != 'master' ]]; then
               git branch -D {} >/dev/null 2>&1 && echo '🗑️  Deleted branch: {}' >&2
             else
               echo '⚠️  Cannot delete protected branch: {}' >&2
             fi
           )+reload(git branch --color=always | grep -v '/HEAD' | sed 's/^..//')" \
-         --bind "ctrl-b:execute-silent(
-           printf 'New branch name: ' > /dev/tty
-           IFS= read -r new_branch < /dev/tty
-           if [[ -n \$new_branch ]]; then
+          --bind "alt-s:execute-silent(git switch {q} >/dev/null 2>&1)+abort" \
+          --bind "alt-b:execute-silent(
+            printf 'New branch name: ' > /dev/tty
+            IFS= read -r new_branch < /dev/tty
+            if [[ -n \$new_branch ]]; then
              {
                git switch {} >/dev/null 2>&1 &&
                git checkout -b \"\$new_branch\" >/dev/null 2>&1 &&
