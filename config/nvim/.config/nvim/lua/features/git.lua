@@ -39,6 +39,7 @@ end
 function M.diffview_keys()
   return {
     { '<leader>gd', '<cmd>DiffviewOpen<CR>', desc = '[G]it [D]iff view' },
+    { '<leader>gb', '<cmd>DiffviewOpen main...HEAD<CR>', desc = '[G]it [B]ranch diff view' },
     { '<leader>gH', '<cmd>DiffviewFileHistory %<CR>', desc = '[G]it file [H]istory' },
     { '<leader>gD', '<cmd>DiffviewClose<CR>', desc = '[G]it close [D]iff view' },
   }

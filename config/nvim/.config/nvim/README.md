@@ -48,6 +48,7 @@
 ### File Browsing
 - `<leader>e`: smart `nvim-tree` toggle or focus current file in the tree.
 - `<leader>fe`: reveal the current file in `nvim-tree`.
+- In `nvim-tree`: `i` opens a file in a vertical split, `s` in a horizontal split, and `t` in a new tab.
 
 ### Search And Picking
 - `<leader>sf`: find files.
@@ -81,7 +82,8 @@
 
 ### Git
 - `<leader>gs`: Telescope git status.
-- `<leader>gd`: open Diffview.
+- `<leader>gd`: open Diffview for current local changes.
+- `<leader>gb`: open Diffview for `main...HEAD` branch review.
 - `<leader>gD`: close Diffview.
 - `<leader>gH`: file history in Diffview.
 - `<leader>gy`: copy remote git link.
