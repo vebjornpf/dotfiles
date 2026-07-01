@@ -133,7 +133,7 @@ gfs() {
               echo '⚠️  Cannot delete protected branch: {}' >&2
             fi
           )+reload(git branch --color=always | grep -v '/HEAD' | sed 's/^..//')" \
-          --bind "alt-s:accept" \
+          --bind "alt-s:execute(git switch {} 2>&1)+reload(git branch --color=always | grep -v '/HEAD' | sed 's/^..//')" \
           --bind "alt-b:execute-silent(
             printf 'New branch name: ' > /dev/tty
             IFS= read -r new_branch < /dev/tty
