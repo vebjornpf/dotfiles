@@ -15,7 +15,7 @@ Help:
 - `ghpr <command> --help` shows command-specific help
 
 Local config:
-- `~/.config/local/ghpr.zsh`
+- `~/.config/local/tools.zsh`
 
 State:
 - `GHPR_STATE_DIR/mine.json` - cached payload for `ghpr mine`

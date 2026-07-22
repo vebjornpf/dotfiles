@@ -2,12 +2,12 @@
 
 SONAR_HOME="${SONAR_HOME:-$HOME/.config/sonar}"
 
-[[ -f "$HOME/.config/local/sonar.zsh" ]] && source "$HOME/.config/local/sonar.zsh"
+[[ -f "$HOME/.config/local/tools.zsh" ]] && source "$HOME/.config/local/tools.zsh"
 
 require_sonar_base_url() {
   if [[ -z "${SONAR_BASE_URL:-}" ]]; then
     echo "SONAR_BASE_URL is not set" >&2
-    echo "Set it in ~/.config/local/sonar.zsh, for example:" >&2
+    echo "Set it in ~/.config/local/tools.zsh, for example:" >&2
     echo '  export SONAR_BASE_URL="https://sonar.example.com"' >&2
     exit 1
   fi
@@ -16,7 +16,7 @@ require_sonar_base_url() {
 require_sonar_token() {
   if [[ -z "${SONAR_TOKEN:-}" ]]; then
     echo "SONAR_TOKEN is not set" >&2
-    echo "Set it in ~/.config/local/sonar.zsh, for example:" >&2
+    echo "Set it in ~/.config/local/tools.zsh, for example:" >&2
     echo '  export SONAR_TOKEN="<token>"' >&2
     exit 1
   fi

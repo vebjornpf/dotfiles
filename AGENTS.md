@@ -75,7 +75,7 @@ Rules:
 
 - Do not hardcode personal or machine-local values in tracked command code
 - Prefer reading required values from environment variables
-- For zsh-backed tools, source an optional local file from `~/.config/local/<tool>.zsh`
+- For zsh-backed tools, source the shared local file from `~/.config/local/tools.zsh`
 - Document required local variables in the tracked `zsh/` file and command help text
 - Fail with a clear error when a required local variable is unset
 

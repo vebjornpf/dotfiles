@@ -2,7 +2,7 @@ export GHPR_HOME="$HOME/.config/ghpr"
 export GHPR_STATE_DIR="$HOME/git/daily/ghpr"
 
 # Optional local overrides live outside stow-managed config.
-[[ -f "$HOME/.config/local/ghpr.zsh" ]] && source "$HOME/.config/local/ghpr.zsh"
+[[ -f "$HOME/.config/local/tools.zsh" ]] && source "$HOME/.config/local/tools.zsh"
 
 local ghpr_bin_dir="$GHPR_HOME/bin"
 

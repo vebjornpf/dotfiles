@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-[[ -f "$HOME/.config/local/ghrepo.zsh" ]] && source "$HOME/.config/local/ghrepo.zsh"
+[[ -f "$HOME/.config/local/tools.zsh" ]] && source "$HOME/.config/local/tools.zsh"
 
 ghrepo_state_dir() {
   printf '%s\n' "${GHREPO_STATE_DIR:-$HOME/git/daily/ghrepo}"

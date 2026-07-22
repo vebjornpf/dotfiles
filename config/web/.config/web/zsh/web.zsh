@@ -3,7 +3,7 @@ export WEB_HOME="$HOME/.config/web"
 # Optional local overrides: define WEB_LINK_ARGOCD_<ENV> entries here
 # Supported variables:
 #   WEB_LINK_ARGOCD_<ENV>   ArgoCD URL for a given environment name
-[[ -f "$HOME/.config/local/web.zsh" ]] && source "$HOME/.config/local/web.zsh"
+[[ -f "$HOME/.config/local/tools.zsh" ]] && source "$HOME/.config/local/tools.zsh"
 
 local web_bin_dir="$WEB_HOME/bin"
 

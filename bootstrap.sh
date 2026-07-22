@@ -51,6 +51,17 @@ theme_present() {
     || [[ -f "$HOME/.oh-my-zsh/custom/themes/catppuccin/catppuccin.zsh-theme" ]]
 }
 
+shell_listed() {
+  local shell_path=$1 line
+  [[ -n "$shell_path" && -r /etc/shells ]] || return 1
+
+  while IFS= read -r line; do
+    [[ "$line" == "$shell_path" ]] && return 0
+  done </etc/shells
+
+  return 1
+}
+
 path_present() {
   local kind=$1 value=$2
   case "$kind" in
@@ -128,10 +139,31 @@ current_login_shell() {
   fi
 }
 
+resolve_login_zsh() {
+  local candidate current shell_path
+  candidate=$(command -v zsh 2>/dev/null || true)
+  current=$(current_login_shell)
+
+  for shell_path in "$current" "$candidate" /usr/bin/zsh /bin/zsh; do
+    [[ -n "$shell_path" ]] || continue
+    [[ "${shell_path##*/}" == 'zsh' ]] || continue
+    [[ -x "$shell_path" ]] || continue
+    shell_listed "$shell_path" && {
+      printf '%s' "$shell_path"
+      return 0
+    }
+  done
+
+  printf '%s' "$candidate"
+}
+
 ensure_default_shell() {
-  local zsh_path shell_path
-  zsh_path=$(command -v zsh)
+  local zsh_path shell_path discovered_zsh
+  discovered_zsh=$(command -v zsh 2>/dev/null || true)
+  zsh_path=$(resolve_login_zsh)
   shell_path=$(current_login_shell)
+
+  [[ -n "$zsh_path" ]] || { warn 'zsh not found. Set your login shell manually after installing zsh'; return 0; }
 
   [[ -n "$shell_path" && "$shell_path" == "$zsh_path" ]] && {
     log "Default shell already set to $zsh_path"
@@ -139,6 +171,13 @@ ensure_default_shell() {
   }
   [[ "${SHELL:-}" == "$zsh_path" ]] && log "Current shell already uses $zsh_path; login shell may still need updating"
   command -v chsh >/dev/null 2>&1 || { warn "chsh not found. Set your login shell manually to: $zsh_path"; return 0; }
+
+  if [[ "$zsh_path" != "$discovered_zsh" && -n "$discovered_zsh" ]]; then
+    warn "Using $zsh_path for login shell because $discovered_zsh is not listed in /etc/shells"
+  elif ! shell_listed "$zsh_path"; then
+    warn "Could not find a zsh path listed in /etc/shells. Add $zsh_path to /etc/shells, then run: chsh -s $zsh_path"
+    return 0
+  fi
 
   log "Setting default shell to $zsh_path"
   chsh -s "$zsh_path" && { log 'Default shell updated'; return 0; }

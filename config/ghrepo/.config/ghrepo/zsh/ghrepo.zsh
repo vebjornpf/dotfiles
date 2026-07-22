@@ -4,7 +4,7 @@ export GHREPO_STATE_DIR="$HOME/git/daily/ghrepo"
 # Optional local overrides live outside stow-managed config.
 # Supported variables:
 #   GHREPO_ORG
-[[ -f "$HOME/.config/local/ghrepo.zsh" ]] && source "$HOME/.config/local/ghrepo.zsh"
+[[ -f "$HOME/.config/local/tools.zsh" ]] && source "$HOME/.config/local/tools.zsh"
 
 local ghrepo_bin_dir="$GHREPO_HOME/bin"
 

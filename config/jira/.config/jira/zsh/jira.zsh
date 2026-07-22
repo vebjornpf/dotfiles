@@ -6,7 +6,7 @@ export JIRA_STATE_DIR="$HOME/git/daily/jira"
 #   JIRA_PROJECT_KEY
 #   JIRA_BASE_URL
 #   JIRA_BOARD_URL
-[[ -f "$HOME/.config/local/jira.zsh" ]] && source "$HOME/.config/local/jira.zsh"
+[[ -f "$HOME/.config/local/tools.zsh" ]] && source "$HOME/.config/local/tools.zsh"
 
 local jira_bin_dir="$JIRA_HOME/bin"
 

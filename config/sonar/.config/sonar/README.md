@@ -28,7 +28,7 @@ branch=main
 ```
 
 Local config:
-- `~/.config/local/sonar.zsh`
+- `~/.config/local/tools.zsh`
 
 Variables:
 - `SONAR_BASE_URL` - required SonarQube base URL

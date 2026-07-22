@@ -5,7 +5,7 @@ Supported commands:
 - `ghrepo sync`
 
 Local config:
-- `~/.config/local/ghrepo.zsh`
+- `~/.config/local/tools.zsh`
 
 Variables:
 - `GHREPO_ORG` - required GitHub organization to sync

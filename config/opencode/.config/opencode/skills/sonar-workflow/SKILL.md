@@ -19,7 +19,7 @@ description: Use when working with a repo that uses the local Sonar setup based 
 
 ## Rules
 - Repo config lives in `.sonar/project`.
-- Global Sonar connection config lives in `~/.config/local/sonar.zsh`.
+- Global Sonar connection config lives in `~/.config/local/tools.zsh`.
 - Generated raw payloads live in `.sonar/raw/issues-<quality>.json`.
 - Generated rule metadata lives in `.sonar/raw/rules/<repository>/<rule>.json`.
 - Generated normalized outputs live in `.sonar/issues-<quality>.json`.

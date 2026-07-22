@@ -60,6 +60,12 @@ Notes:
 
 If you do not want to use the bootstrap yet, the manual flow is still available.
 
+Tool-local variables live in one shared file:
+
+- `~/.config/local/tools.zsh`
+
+Put `jira`, `sonar`, `ghrepo`, `ghpr`, and `web` local variables there.
+
 ### Prerequisites
 
 Install these before running `stow-all.sh`:

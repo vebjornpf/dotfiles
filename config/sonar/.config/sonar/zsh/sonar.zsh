@@ -4,7 +4,7 @@ export SONAR_HOME="$HOME/.config/sonar"
 # Supported variables:
 #   SONAR_BASE_URL
 #   SONAR_TOKEN
-[[ -f "$HOME/.config/local/sonar.zsh" ]] && source "$HOME/.config/local/sonar.zsh"
+[[ -f "$HOME/.config/local/tools.zsh" ]] && source "$HOME/.config/local/tools.zsh"
 
 local sonar_bin_dir="$SONAR_HOME/bin"
 

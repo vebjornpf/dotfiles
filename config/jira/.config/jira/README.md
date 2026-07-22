@@ -45,7 +45,7 @@ jira create TDX-123 Story High --summary "Investigate issue" --component api --a
 ```
 
 Local config:
-- `~/.config/local/jira.zsh`
+- `~/.config/local/tools.zsh`
 
 Variables:
 - `JIRA_PROJECT_KEY` - required project key used by team-scoped sync
