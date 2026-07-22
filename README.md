@@ -48,6 +48,30 @@ Helpful subcommands:
 ./bootstrap.sh verify core
 ```
 
+### Tools bootstrap
+
+Use the tools bootstrap after core. It installs missing workflow dependencies, stows the tool packages, installs `opencode` npm dependencies, and verifies local tool config.
+
+```sh
+./bootstrap.sh tools
+```
+
+Tools bootstrap covers:
+
+- system packages: `gh`, `jq`, `curl`, `acli`, `node`, `npm`
+- stowed packages: `jira`, `ghpr`, `ghrepo`, `sonar`, `web`, `opencode`
+- shared local config: `~/.config/local/tools.zsh`
+- post-link install: `npm install` in `~/.config/opencode`
+
+Helpful subcommands:
+
+```sh
+./bootstrap.sh check tools
+./bootstrap.sh install tools
+./bootstrap.sh link tools
+./bootstrap.sh verify tools
+```
+
 Notes:
 
 - `./bootstrap.sh core` supports Homebrew and `apt-get`
@@ -55,6 +79,8 @@ Notes:
 - on Debian/Ubuntu, the bootstrap creates a `~/.local/bin/bat` wrapper if the system package only provides `batcat`
 - tmux still needs `prefix + I` once after bootstrap to install plugins
 - configure your terminal to use a Nerd Font for tmux icons
+- `./bootstrap.sh tools` expects your local tool variables in `~/.config/local/tools.zsh`
+- `./bootstrap.sh tools` does not log in to external services for you; check `gh auth status` and your `acli` auth separately
 
 ### Manual / fallback setup
 

@@ -16,15 +16,22 @@ usage() {
   cat <<'EOF'
 Usage:
   ./bootstrap.sh core
+  ./bootstrap.sh tools
   ./bootstrap.sh check core
+  ./bootstrap.sh check tools
   ./bootstrap.sh install core
+  ./bootstrap.sh install tools
   ./bootstrap.sh link core
+  ./bootstrap.sh link tools
   ./bootstrap.sh verify core
+  ./bootstrap.sh verify tools
 EOF
 }
 
 core_packages=(zsh tmux nvim)
 core_commands=(git stow zsh tmux nvim fzf rg bat)
+tools_packages=(jira ghpr ghrepo sonar web opencode)
+tools_commands=(gh jq curl acli node npm)
 core_paths=(
   'oh-my-zsh|d|~/.oh-my-zsh'
   'catppuccin theme|t|catppuccin theme'
@@ -36,6 +43,17 @@ core_paths=(
   '~/.config/tmux/tmux.conf|e|~/.config/tmux/tmux.conf'
   '~/.config/nvim/init.lua|e|~/.config/nvim/init.lua'
 )
+tools_paths=(
+  '~/.config/local/tools.zsh|e|~/.config/local/tools.zsh'
+  '~/.config/jira|e|~/.config/jira'
+  '~/.config/ghpr|e|~/.config/ghpr'
+  '~/.config/ghrepo|e|~/.config/ghrepo'
+  '~/.config/sonar|e|~/.config/sonar'
+  '~/.config/web|e|~/.config/web'
+  '~/.config/opencode/package.json|e|~/.config/opencode/package.json'
+  'opencode plugin install|d|~/.config/opencode/node_modules/@opencode-ai/plugin'
+)
+tools_required_vars=(GHREPO_ORG JIRA_PROJECT_KEY JIRA_BASE_URL JIRA_BOARD_URL SONAR_BASE_URL SONAR_TOKEN)
 
 expand_home() {
   printf '%s' "${1/#\~/$HOME}"
@@ -79,10 +97,18 @@ detect_package_manager() {
 }
 
 package_name_for() {
-  case "$1" in
-    nvim) printf 'neovim' ;;
-    rg) printf 'ripgrep' ;;
-    *) printf '%s' "$1" ;;
+  local manager=${1:-} command=${2:-}
+  case "$manager:$command" in
+    brew:node|brew:npm) printf 'node' ;;
+    apt:node) printf 'nodejs' ;;
+    apt:npm) printf 'npm' ;;
+    *:nvim) printf 'neovim' ;;
+    *:rg) printf 'ripgrep' ;;
+    *:gh) printf 'gh' ;;
+    *:jq) printf 'jq' ;;
+    *:curl) printf 'curl' ;;
+    *:acli) printf 'acli' ;;
+    *) printf '%s' "$command" ;;
   esac
 }
 
@@ -185,8 +211,10 @@ ensure_default_shell() {
 }
 
 report_commands() {
-  local strict=${1:-0} cmd failed=0
-  for cmd in "${core_commands[@]}"; do
+  local strict=${1:-0}
+  shift
+  local cmd failed=0
+  for cmd in "$@"; do
     if command_present "$cmd"; then
       log "OK command: $cmd"
     else
@@ -198,8 +226,10 @@ report_commands() {
 }
 
 report_paths() {
-  local strict=${1:-0} entry label kind value failed=0
-  for entry in "${core_paths[@]}"; do
+  local strict=${1:-0}
+  shift
+  local entry label kind value failed=0
+  for entry in "$@"; do
     IFS='|' read -r label kind value <<<"$entry"
     if path_present "$kind" "$value"; then
       log "OK $label"
@@ -218,8 +248,8 @@ check_core() {
   manager=$(detect_package_manager 2>/dev/null || true)
   [[ -n "$manager" ]] && log "Package manager: $manager" || warn 'No supported package manager detected automatically (supported: brew, apt-get)'
 
-  report_commands
-  report_paths
+  report_commands 0 "${core_commands[@]}"
+  report_paths 0 "${core_paths[@]}"
 
   for pkg in "${core_packages[@]}"; do
     if [[ "$pkg" == 'zsh' ]]; then
@@ -243,7 +273,7 @@ install_core() {
 
   manager=$(detect_package_manager 2>/dev/null) || die 'No supported package manager detected automatically. Install core dependencies manually first.'
   for cmd in "${core_commands[@]}"; do
-    command_present "$cmd" || missing_packages+=("$(package_name_for "$cmd")")
+    command_present "$cmd" || missing_packages+=("$(package_name_for "$manager" "$cmd")")
   done
 
   install_packages "$manager" "${missing_packages[@]}"
@@ -264,23 +294,156 @@ link_core() {
 }
 
 verify_core() {
-  report_commands 1 && report_paths 1 || die 'Core bootstrap verification failed'
+  report_commands 1 "${core_commands[@]}" && report_paths 1 "${core_paths[@]}" || die 'Core bootstrap verification failed'
   log 'Core bootstrap verification passed'
   warn 'Still do these manually: start a new login shell, open tmux and press prefix + I, configure a Nerd Font in your terminal'
 }
 
-require_core_target() {
+report_required_vars() {
+  local strict=${1:-0}
+  shift
+  local name failed=0
+  for name in "$@"; do
+    if [[ -n "${!name:-}" ]]; then
+      log "OK variable: $name"
+    else
+      warn "Missing variable: $name"
+      failed=1
+    fi
+  done
+  [[ $strict -eq 0 || $failed -eq 0 ]]
+}
+
+install_opencode_deps() {
+  [[ -f "$HOME/.config/opencode/package.json" ]] || return 0
+  log 'Installing opencode npm dependencies'
+  (cd "$HOME/.config/opencode" && npm install)
+}
+
+link_packages() {
+  command -v stow >/dev/null 2>&1 || die 'stow is required before linking packages'
+  local pkg
+  for pkg in "$@"; do
+    [[ -d "$CONFIG_DIR/$pkg" ]] || { warn "Skipping missing package directory: $pkg"; continue; }
+    log "Stowing $pkg"
+    (cd "$CONFIG_DIR" && stow --restow -t "$HOME" "$pkg")
+  done
+}
+
+check_tools() {
+  local manager pkg
+  log "Platform: $(detect_platform)"
+  manager=$(detect_package_manager 2>/dev/null || true)
+  [[ -n "$manager" ]] && log "Package manager: $manager" || warn 'No supported package manager detected automatically (supported: brew, apt-get)'
+
+  report_commands 0 "${tools_commands[@]}"
+  report_paths 0 "${tools_paths[@]}"
+
+  if [[ -f "$HOME/.config/local/tools.zsh" ]]; then
+    # shellcheck disable=SC1090
+    source "$HOME/.config/local/tools.zsh"
+  fi
+  report_required_vars 0 "${tools_required_vars[@]}"
+
+  for pkg in "${tools_packages[@]}"; do
+    [[ -e "$HOME/.config/$pkg" ]] && log "Linked package looks present: $pkg" || warn "Package not linked yet: $pkg"
+  done
+  warn 'Manual checks still required: run `gh auth status`, make sure `acli` is authenticated, and confirm repo-level Sonar `.sonar/project` files where needed'
+}
+
+install_tools() {
+  local manager cmd package
+  local missing_packages=()
+
+  manager=$(detect_package_manager 2>/dev/null) || die 'No supported package manager detected automatically. Install tool dependencies manually first.'
+  for cmd in "${tools_commands[@]}"; do
+    if command_present "$cmd"; then
+      continue
+    fi
+    package=$(package_name_for "$manager" "$cmd")
+    [[ "$package" == 'acli' && "$manager" == 'apt' ]] && die 'Install `acli` manually before running tool bootstrap on apt-based systems.'
+    missing_packages+=("$package")
+  done
+
+  if [[ ${#missing_packages[@]} -gt 0 ]]; then
+    # de-duplicate while preserving order
+    local deduped=() seen=" "
+    local item
+    for item in "${missing_packages[@]}"; do
+      [[ "$seen" == *" $item "* ]] && continue
+      deduped+=("$item")
+      seen+="$item "
+    done
+    install_packages "$manager" "${deduped[@]}"
+  else
+    log 'All tool packages already installed'
+  fi
+}
+
+link_tools() {
+  link_packages "${tools_packages[@]}"
+}
+
+verify_tools() {
+  if [[ -f "$HOME/.config/local/tools.zsh" ]]; then
+    # shellcheck disable=SC1090
+    source "$HOME/.config/local/tools.zsh"
+  fi
+
+  report_commands 1 "${tools_commands[@]}" \
+    && report_paths 1 "${tools_paths[@]}" \
+    && report_required_vars 1 "${tools_required_vars[@]}" \
+    || die 'Tools bootstrap verification failed'
+
+  log 'Tools bootstrap verification passed'
+  warn 'Still do these manually: run `gh auth status`, make sure `acli` is authenticated, and confirm repo-level Sonar `.sonar/project` files where needed'
+}
+
+run_tools() {
+  install_tools
+  link_tools
+  install_opencode_deps
+  verify_tools
+}
+
+require_target() {
   local command=$1 target=${2:-}
-  [[ "$target" == 'core' ]] || die "Usage: ./bootstrap.sh $command core"
+  local expected=$3
+  [[ "$target" == "$expected" ]] || die "Usage: ./bootstrap.sh $command $expected"
 }
 
 main() {
   case "${1:-}" in
     core) install_core; link_core; verify_core ;;
-    check) require_core_target check "${2:-}"; check_core ;;
-    install) require_core_target install "${2:-}"; install_core ;;
-    link) require_core_target link "${2:-}"; link_core ;;
-    verify) require_core_target verify "${2:-}"; verify_core ;;
+    tools) run_tools ;;
+    check)
+      case "${2:-}" in
+        core) check_core ;;
+        tools) check_tools ;;
+        *) die 'Usage: ./bootstrap.sh check core|tools' ;;
+      esac
+      ;;
+    install)
+      case "${2:-}" in
+        core) install_core ;;
+        tools) install_tools ;;
+        *) die 'Usage: ./bootstrap.sh install core|tools' ;;
+      esac
+      ;;
+    link)
+      case "${2:-}" in
+        core) link_core ;;
+        tools) link_tools ;;
+        *) die 'Usage: ./bootstrap.sh link core|tools' ;;
+      esac
+      ;;
+    verify)
+      case "${2:-}" in
+        core) verify_core ;;
+        tools) verify_tools ;;
+        *) die 'Usage: ./bootstrap.sh verify core|tools' ;;
+      esac
+      ;;
     -h|--help|help|'') usage ;;
     *) die "Unknown command: ${1:-}" ;;
   esac
