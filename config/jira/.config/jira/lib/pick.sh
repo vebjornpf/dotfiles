@@ -21,7 +21,9 @@ case "$target" in
     ;;
 esac
 
-bash "$sync_script" $sync_target
+if [[ "${JIRA_SKIP_SYNC:-0}" != "1" ]]; then
+  bash "$sync_script" $sync_target
+fi
 
 while true; do
   selected=$(fzf --ansi --prompt="$prompt_label > " \

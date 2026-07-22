@@ -16,6 +16,7 @@ Commands:
   jira mywork <KEY> open
   jira mywork <KEY> cp
   jira mywork <KEY> cpk
+  jira mywork <KEY> print
   jira mywork --help show this help
 EOF
 }

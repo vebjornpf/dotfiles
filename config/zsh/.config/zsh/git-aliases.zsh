@@ -60,7 +60,8 @@ alias grhh='git reset HEAD --hard'
 alias gclean='git clean -fd'
 
 # Tag
-alias gt='git tag'
+alias gt='git tag --sort=-version:refname'
+alias gtl='git tag --sort=-version:refname | head -1'
 alias gts='git tag -l'
 
 # Cherry-pick/Revert/Amend

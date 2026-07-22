@@ -6,57 +6,30 @@ lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$lib_dir/env.sh"
 source "$lib_dir/actions.sh"
 
-state_dir="${JIRA_STATE_DIR:-$HOME/git/daily/jira}"
-sync_script="$lib_dir/sync.sh"
-project_metadata_file=""
+create_project_key="TDX"
+description_value=""
+summary=""
+component=""
+priority=""
+assign_to_me=0
+POSITIONAL=()
 
 usage() {
   cat <<'EOF'
-Usage: jira create
+Usage: jira create <EPIC-KEY> <Story|Spike|Bug> <Low|Medium|High> [options]
 
-Create a Jira work item interactively.
+Create a Jira work item in project TDX.
+
+Options:
+  --summary <text>      Work item summary
+  --component <name>    Jira component name
+  --description <text>  Optional description text; otherwise $EDITOR opens at the end
+  --assign              Assign created item to me
+  -h, --help            Show this help
+
+Examples:
+  jira create TDX-123 Story High --summary "Investigate issue" --component api --assign
 EOF
-}
-
-trim() {
-  local value="$1"
-  value="${value#"${value%%[![:space:]]*}"}"
-  value="${value%"${value##*[![:space:]]}"}"
-  printf '%s' "$value"
-}
-
-pick_simple() {
-  local prompt="$1"
-  shift
-  printf '%s\n' "$@" | fzf --prompt="$prompt > " --height=40% --layout=reverse
-}
-
-pick_from_tsv() {
-  local file="$1"
-  local prompt="$2"
-
-  [[ -f "$file" ]] || return 1
-
-  fzf --prompt="$prompt > " \
-    --delimiter=$'\t' \
-    --with-nth=1,2,3 \
-    --height=60% \
-    --layout=reverse < "$file"
-}
-
-prompt_required_line() {
-  local label="$1"
-  local value
-
-  while true; do
-    read -e -r -p "$label: " value
-    value="$(trim "$value")"
-    if [[ -n "$value" ]]; then
-      printf '%s\n' "$value"
-      return
-    fi
-    echo "$label is required" >&2
-  done
 }
 
 edit_description_file() {
@@ -67,131 +40,104 @@ edit_description_file() {
   "$editor" "$file" </dev/tty >/dev/tty 2>/dev/tty
 }
 
-ensure_picker_inputs() {
-  mkdir -p "$state_dir"
+read_description() {
+  local description_file
 
-  if [[ ! -f "$state_dir/epics-completion.tsv" || ! -f "$state_dir/all-completion.tsv" ]]; then
-    bash "$sync_script" all >/dev/null
+  description_file="$(mktemp)"
+  trap 'rm -f "$description_file"' RETURN
+
+  if [[ -n "$description_value" ]]; then
+    printf '%s' "$description_value" > "$description_file"
+  else
+    edit_description_file "$description_file"
   fi
+
+  cat "$description_file"
 }
 
-load_project_metadata() {
-  project_metadata_file="$(mktemp)"
-  trap "rm -f \"$project_metadata_file\"" EXIT
-  acli jira project view --key "$JIRA_PROJECT_KEY" --json > "$project_metadata_file"
-}
+build_description_json() {
+  local description_text="$1"
 
-pick_issue_type() {
-  jq -r '.issueTypes[]? | [.name, ((.subtask // false) | tostring), (.hierarchyLevel // 0)] | @tsv' "$project_metadata_file" \
-    | fzf --prompt='Type > ' --delimiter=$'\t' --with-nth=1 --height=50% --layout=reverse
-}
-
-pick_priority() {
-  pick_simple "Priority" Low Medium High
-}
-
-pick_story_epic() {
-  local selected epic_key
-
-  selected="$(pick_from_tsv "$state_dir/epics-completion.tsv" "Epic")" || return 1
-  epic_key="${selected%%$'\t'*}"
-  printf '%s\n' "$epic_key"
-}
-
-pick_subtask_parent() {
-  local selected parent_key
-
-  selected="$(pick_from_tsv "$state_dir/all-completion.tsv" "Parent task")" || return 1
-  parent_key="${selected%%$'\t'*}"
-  printf '%s\n' "$parent_key"
-}
-
-pick_component() {
-  local components
-
-  components="$({ printf 'none\n'; jq -r '.components[]?.name' "$project_metadata_file" | LC_ALL=C sort -fu; })"
-  printf '%s\n' "$components" | fzf --prompt='Component > ' --height=60% --layout=reverse
+  jq -n --arg description_text "$description_text" '
+    if $description_text == "" then
+      null
+    else
+      {
+        type: "doc",
+        version: 1,
+        content: (
+          ($description_text | split("\n"))
+          | map({
+              type: "paragraph",
+              content: (if . == "" then [] else [{type: "text", text: .}] end)
+            })
+        )
+      }
+    end
+  '
 }
 
 build_create_payload() {
-  local summary="$1"
-  local description_file="$2"
-  local issue_type="$3"
-  local component="$4"
-  local epic_key="$5"
-  local priority="$6"
-  local parent_issue_id="$7"
-  local payload_file="$8"
+  local epic_key="$1"
+  local issue_type="$2"
+  local issue_priority="$3"
+  local payload_file="$4"
+  local description_text="$5"
+  local description_json
+
+  description_json="$(build_description_json "$description_text")"
 
   jq -n \
-    --arg project_key "$JIRA_PROJECT_KEY" \
+    --arg project_key "$create_project_key" \
     --arg summary "$summary" \
     --arg issue_type "$issue_type" \
-    --rawfile description_text "$description_file" \
     --arg component "$component" \
     --arg epic_key "$epic_key" \
-    --arg priority "$priority" \
-    --arg parent_issue_id "$parent_issue_id" \
+    --arg issue_priority "$issue_priority" \
+    --argjson description "$description_json" \
     '
       {
         projectKey: $project_key,
         summary: $summary,
         type: $issue_type,
-        description: {
-          type: "doc",
-          version: 1,
-          content: (
-            ($description_text | split("\n"))
-            | if length == 0 then
-                [{type: "paragraph", content: []}]
-              else
-                map({
-                  type: "paragraph",
-                  content: (if . == "" then [] else [{type: "text", text: .}] end)
-                })
-              end
-          )
+        additionalAttributes: {
+          components: [{name: $component}],
+          customfield_10006: $epic_key,
+          priority: {name: $issue_priority}
         }
       }
-      | if $parent_issue_id != "" then
-          .parentIssueId = $parent_issue_id
-        else
-          .
-        end
-      | .additionalAttributes = {}
-      | if $component == "" or $component == "none" then
+      | if $description == null then
           .
         else
-          .additionalAttributes.components = [
-            {name: $component}
-          ]
-          | .
+          .description = $description
         end
-      | if $epic_key != "" then
-          .additionalAttributes.customfield_10006 = $epic_key
-          | .
-        else
-          .
-        end
-      | if $priority != "" then
-          .additionalAttributes.priority = {name: $priority}
-          | .
-        else
-          .
-        end
-      | if (.additionalAttributes | length) == 0 then del(.additionalAttributes) else . end
     ' > "$payload_file"
 }
 
 create_issue() {
   local payload_file="$1"
+  local epic_key="$2"
+  local issue_type="$3"
+  local issue_priority="$4"
+  local description_text="$5"
   local -a cmd=(acli jira workitem create --from-json "$payload_file" --json)
   local output stderr_file key
 
   stderr_file="$(mktemp)"
-  trap "rm -f \"$stderr_file\"" RETURN
+  trap 'rm -f "$stderr_file"' RETURN
 
   if ! output="$("${cmd[@]}" 2>"$stderr_file")"; then
+    printf 'Jira create failed\n' >&2
+    printf 'Project: %s\n' "$create_project_key" >&2
+    printf 'Epic: %s\n' "$epic_key" >&2
+    printf 'Type: %s\n' "$issue_type" >&2
+    printf 'Priority: %s\n' "$issue_priority" >&2
+    printf 'Summary: %s\n' "$summary" >&2
+    printf 'Component: %s\n' "$component" >&2
+    printf 'Description:\n%s\n' "$description_text" >&2
+    printf '\nPayload:\n' >&2
+    cat "$payload_file" >&2
+    printf '\nacli stderr:\n' >&2
     cat "$stderr_file" >&2
     return 1
   fi
@@ -217,66 +163,109 @@ ensure_backlog_status() {
   fi
 }
 
-main() {
-  local title description_file issue_type_row issue_type issue_type_is_subtask issue_type_hierarchy epic_key parent_key parent_issue_id component priority assign_to_me payload_file issue_key
+parse_args() {
+  POSITIONAL=()
 
-  case "${1:-}" in
-    "" )
-      ;;
-    -h|--help|help)
-      usage
-      exit 0
+  while (( $# > 0 )); do
+    case "$1" in
+      -h|--help|help)
+        usage
+        exit 0
+        ;;
+      --summary)
+        [[ $# -ge 2 ]] || { echo "Missing value for --summary" >&2; exit 1; }
+        summary="$2"
+        shift 2
+        ;;
+      --component)
+        [[ $# -ge 2 ]] || { echo "Missing value for --component" >&2; exit 1; }
+        component="$2"
+        shift 2
+        ;;
+      --description)
+        [[ $# -ge 2 ]] || { echo "Missing value for --description" >&2; exit 1; }
+        description_value="$2"
+        shift 2
+        ;;
+      --assign)
+        assign_to_me=1
+        shift
+        ;;
+      --*)
+        echo "Unknown jira create option: $1" >&2
+        usage >&2
+        exit 1
+        ;;
+      *)
+        POSITIONAL+=("$1")
+        shift
+        ;;
+    esac
+  done
+}
+
+validate_type() {
+  case "$1" in
+    Story|Spike|Bug)
       ;;
     *)
-      echo "Unknown jira create argument: $1" >&2
-      echo >&2
-      usage >&2
+      echo "Unsupported work type: $1" >&2
+      echo "Valid values: Story, Spike, Bug" >&2
       exit 1
       ;;
   esac
+}
 
-  require_jira_project_key
-  ensure_picker_inputs
-  load_project_metadata
+validate_priority() {
+  case "$1" in
+    Low|Medium|High)
+      ;;
+    *)
+      echo "Unsupported priority: $1" >&2
+      echo "Valid values: Low, Medium, High" >&2
+      exit 1
+      ;;
+  esac
+}
 
-  title="$(prompt_required_line "Title")"
+main() {
+  local epic_key issue_type issue_priority payload_file issue_key description_text
 
-  description_file="$(mktemp)"
-  payload_file="$(mktemp)"
-  trap "rm -f \"$project_metadata_file\" \"$description_file\" \"$payload_file\"" EXIT
+  parse_args "$@"
 
-  edit_description_file "$description_file"
-
-  issue_type_row="$(pick_issue_type)" || exit 1
-  issue_type="${issue_type_row%%$'\t'*}"
-  issue_type_row="${issue_type_row#*$'\t'}"
-  issue_type_is_subtask="${issue_type_row%%$'\t'*}"
-  issue_type_hierarchy="${issue_type_row#*$'\t'}"
-  epic_key=""
-  parent_key=""
-  parent_issue_id=""
-
-  if [[ "$issue_type_is_subtask" == "true" ]]; then
-    parent_key="$(pick_subtask_parent)" || exit 1
-    parent_issue_id="$parent_key"
-  elif [[ "$issue_type_hierarchy" == "0" ]]; then
-    epic_key="$(pick_story_epic)" || exit 1
+  if (( ${#POSITIONAL[@]} != 3 )); then
+    usage >&2
+    exit 1
   fi
 
-  component="$(pick_component)" || exit 1
-  priority="$(pick_priority)" || exit 1
-  assign_to_me="$(pick_simple "Assign to me" yes no)" || exit 1
+  epic_key="${POSITIONAL[0]:-}"
+  issue_type="${POSITIONAL[1]:-}"
+  issue_priority="${POSITIONAL[2]:-}"
+  validate_type "$issue_type"
+  validate_priority "$issue_priority"
 
-  build_create_payload "$title" "$description_file" "$issue_type" "$component" "$epic_key" "$priority" "$parent_issue_id" "$payload_file"
-  issue_key="$(create_issue "$payload_file")" || exit 1
+  if [[ -z "$summary" ]]; then
+    echo "Missing required option: --summary" >&2
+    usage >&2
+    exit 1
+  fi
 
-  if [[ "$assign_to_me" == "yes" ]]; then
+  if [[ -z "$component" ]]; then
+    echo "Missing required option: --component" >&2
+    usage >&2
+    exit 1
+  fi
+
+  description_text="$(read_description)"
+  payload_file="$(mktemp)"
+  trap 'rm -f "$payload_file"' EXIT
+
+  build_create_payload "$epic_key" "$issue_type" "$issue_priority" "$payload_file" "$description_text"
+  issue_key="$(create_issue "$payload_file" "$epic_key" "$issue_type" "$issue_priority" "$description_text")" || exit 1
+  if (( assign_to_me == 1 )); then
     assign_issue_to_me "$issue_key"
   fi
-
-  if [[ "$issue_type_is_subtask" != "true" ]]; then
-    ensure_backlog_status "$issue_key"
-  fi
+  ensure_backlog_status "$issue_key"
 
   printf '%s\n' "$issue_key"
 }

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
+
+usage() {
+  cat <<'EOF'
+Usage: jira epics
+
+Open Jira epics picker from cached sync data.
+EOF
+}
+
+case "${1:-}" in
+  "")
+    JIRA_SKIP_SYNC=1 exec bash "$JIRA_HOME/lib/pick.sh" epics "Jira Epics"
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    echo "Unknown jira epics argument: $1" >&2
+    echo >&2
+    usage >&2
+    exit 1
+    ;;
+esac

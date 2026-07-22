@@ -22,3 +22,10 @@
 # Local Skills
 
 - Use the `sonar-workflow` skill when working in repos that use `.sonar/project`, `sonar sync`, and generated `.sonar/issues-*.json` files.
+
+# Jira
+
+- Agents may use the `jira` CLI for Jira-related tasks.
+- Prefer cached and read-oriented commands first: `jira mywork list`, `jira mywork status`, `jira mywork <KEY> print`, `jira item <KEY> print`.
+- Use `jira sync mywork` when fresher Jira data is needed.
+- Avoid mutating Jira state unless the user explicitly asks. Mutating commands include `jira create` and `jira item <KEY> move`.

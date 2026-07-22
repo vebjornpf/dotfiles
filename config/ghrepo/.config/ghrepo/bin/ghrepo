@@ -9,6 +9,7 @@ usage() {
 Usage: ghrepo [command]
 
 Commands:
+  ghrepo            open repo picker
   ghrepo sync       sync repos.tsv from GitHub org
   ghrepo --help     show this help
 EOF
@@ -16,7 +17,7 @@ EOF
 
 case "${1:-}" in
   "")
-    usage
+    exec "$GHREPO_HOME/bin/ghrepo-pick"
     ;;
   -h|--help|help)
     usage

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+GHREPO_HOME="${GHREPO_HOME:-$HOME/.config/ghrepo}"
+
+list_cmd="bash $(printf '%q' "$GHREPO_HOME/lib/picker-list.sh")"
+clone_cmd="bash $(printf '%q' "$GHREPO_HOME/lib/picker-clone.sh") {2}"
+open_cmd="bash $(printf '%q' "$GHREPO_HOME/lib/picker-open.sh") {3}"
+
+fzf --ansi \
+  --prompt="Repos > " \
+  --delimiter=$'\t' \
+  --with-nth=1 \
+  --header=$'enter: clone if missing | alt-o: open in web | alt-r: refresh' \
+  --bind "start:reload($list_cmd)" \
+  --bind "alt-r:reload($list_cmd)" \
+  --bind "enter:execute-silent($clone_cmd)+reload($list_cmd)" \
+  --bind "alt-o:execute-silent($open_cmd)"

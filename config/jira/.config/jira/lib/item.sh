@@ -10,12 +10,33 @@ source "$HOME/.config/zsh/lib/clipboard.sh"
 key="${1:-}"
 action="${2:-view}"
 status_arg="${3:-}"
+state_dir="${JIRA_STATE_DIR:-$HOME/git/daily/jira}"
 url=""
 
 usage() {
   cat >&2 <<'EOF'
-Usage: jira item <KEY> [open|cp|cpk|move [backlog|in progress|qa|done]]
+Usage: jira item <KEY> [open|cp|cpk|print|move [backlog|in progress|qa|done]]
 EOF
+}
+
+print_cached_issue() {
+  local snapshot_file
+  local -a snapshot_files=(
+    "$state_dir/mywork-current.json"
+    "$state_dir/all-current.json"
+  )
+
+  for snapshot_file in "${snapshot_files[@]}"; do
+    [[ -f "$snapshot_file" ]] || continue
+
+    if jq -e --arg key "$key" '.items[]? | select((.key // "") == $key)' "$snapshot_file" >/dev/null; then
+      jq --arg key "$key" '.items[]? | select((.key // "") == $key)' "$snapshot_file"
+      return 0
+    fi
+  done
+
+  echo "Issue $key not found in cached Jira state" >&2
+  exit 1
 }
 
 if [[ -z "$key" ]]; then
@@ -36,6 +57,9 @@ case "$action" in
     ;;
   cpk)
     printf '%s' "$key" | clipboard_copy
+    ;;
+  print)
+    print_cached_issue
     ;;
   move)
     if [[ -n "$status_arg" ]]; then

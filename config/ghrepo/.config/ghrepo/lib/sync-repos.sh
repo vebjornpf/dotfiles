@@ -14,8 +14,8 @@ mkdir -p "$state_dir"
 tmpfile="$(mktemp)"
 trap 'rm -f "${tmpfile:-}"' EXIT
 
-gh repo list "$GHREPO_ORG" --limit 1000 --json name,url,isArchived \
-  | jq -r '.[] | select(.isArchived | not) | [.name, .url] | @tsv' >"$tmpfile"
+gh repo list "$GHREPO_ORG" --limit 1000 --json nameWithOwner,url,isArchived \
+  | jq -r '.[] | select(.isArchived | not) | [.nameWithOwner, .url] | @tsv' >"$tmpfile"
 
 mv "$tmpfile" "$repos_file"
 printf 'Synced repos: %s\n' "$(wc -l < "$repos_file")"

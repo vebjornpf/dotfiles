@@ -8,18 +8,23 @@ Supported commands:
 - `jira item <KEY> open`
 - `jira item <KEY> cp`
 - `jira item <KEY> cpk`
+- `jira item <KEY> print`
 - `jira item <KEY> move`
+- `jira mywork <KEY> print`
 - `jira statusline`
 - `jira backlog`
 - `jira board`
 - `jira board open`
 - `jira component`
 - `jira create`
+- `jira epics`
 - `jira sync`
 - `jira sync all`
 - `jira sync mywork`
 
-`jira create` prompts for title in the terminal, opens `$EDITOR` for the description, and uses pickers for issue type, component, priority, and assignment.
+`jira create` creates a work item in `TDX` using `<EPIC-KEY> <Story|Spike|Bug> <Low|Medium|High>` plus flags. `--summary` and `--component` are required. If `--description` is omitted it opens `$EDITOR` at the end for optional free text. `--assign` explicitly assigns the created item to you after creation.
+
+`jira epics` opens a cached picker showing only epic issues from `all-current.json`. It does not trigger a sync.
 
 It fetches issue types from live Jira project metadata.
 
@@ -29,16 +34,15 @@ Picker shortcuts:
 - `alt-a` assign selected issue to you
 - `alt-s` pick a status and transition the selected issue
 
-Parent rules depend on the selected issue type:
-- sub-task types require a parent task
-- hierarchy level `0` types require an epic
-- higher-level types like `Epic` do not prompt for a parent
-
 Selection sources:
-- epics: `epics-completion.tsv`
-- subtask parents: `all-completion.tsv`
-- components: live Jira project components from `acli jira project view --key "$JIRA_PROJECT_KEY" --json`
-- issue types: live Jira project issue types from `acli jira project view --key "$JIRA_PROJECT_KEY" --json`
+- shell completion for epic key: cached `epics-completion.tsv`
+- shell completion for `--component`: cached `components.tsv` when available
+
+Example create command:
+
+```bash
+jira create TDX-123 Story High --summary "Investigate issue" --component api --assign
+```
 
 Local config:
 - `~/.config/local/jira.zsh`

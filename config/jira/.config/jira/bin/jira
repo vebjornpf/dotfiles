@@ -15,6 +15,7 @@ Commands:
   jira board      open configured Jira board in browser
   jira component  browse open issues by Jira component
   jira create     create a Jira work item interactively
+  jira epics      open cached Jira epics picker
   jira item <KEY> view a Jira item
   jira mywork     manage my Jira work
   jira statusline print compact sync ages for tmux
@@ -49,6 +50,10 @@ if (( $# > 0 )); then
     create)
       shift
       exec "$JIRA_HOME/bin/jira-create" "$@"
+      ;;
+    epics)
+      shift
+      exec "$JIRA_HOME/bin/jira-epics" "$@"
       ;;
     item)
       shift
