@@ -22,6 +22,44 @@ Example: `config/zsh/.config/zsh/.zshrc` gets symlinked to `~/.config/zsh/.zshrc
 
 ## New machine setup
 
+### Core bootstrap
+
+Use the core bootstrap first. It installs missing core dependencies, sets up shell and tmux support repos, stows the core packages, and verifies the result.
+
+```sh
+git clone https://github.com/<you>/dotfiles.git ~/git/dotfiles
+cd ~/git/dotfiles
+./bootstrap.sh core
+```
+
+Core bootstrap covers:
+
+- system packages: `git`, `stow`, `zsh`, `tmux`, `neovim`, `fzf`, `ripgrep`, `bat`
+- shell support: `oh-my-zsh` with the bundled `catppuccin` theme, `zsh-autosuggestions`, `zsh-syntax-highlighting`
+- tmux support: `TPM`
+- stowed packages: `zsh`, `tmux`, `nvim`
+
+Helpful subcommands:
+
+```sh
+./bootstrap.sh check core
+./bootstrap.sh install core
+./bootstrap.sh link core
+./bootstrap.sh verify core
+```
+
+Notes:
+
+- `./bootstrap.sh core` supports Homebrew and `apt-get`
+- it may prompt when setting your default shell to `zsh`
+- on Debian/Ubuntu, the bootstrap creates a `~/.local/bin/bat` wrapper if the system package only provides `batcat`
+- tmux still needs `prefix + I` once after bootstrap to install plugins
+- configure your terminal to use a Nerd Font for tmux icons
+
+### Manual / fallback setup
+
+If you do not want to use the bootstrap yet, the manual flow is still available.
+
 ### Prerequisites
 
 Install these before running `stow-all.sh`:
