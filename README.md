@@ -35,7 +35,7 @@ cd ~/git/dotfiles
 Core bootstrap covers:
 
 - system packages: `git`, `stow`, `zsh`, `tmux`, `neovim`, `fzf`, `ripgrep`, `bat`
-- shell support: `oh-my-zsh` with the bundled `catppuccin` theme, `zsh-autosuggestions`, `zsh-syntax-highlighting`
+- shell support: `oh-my-zsh` with the repo's `catppuccin` theme, `zsh-autosuggestions`, `zsh-syntax-highlighting`
 - tmux support: `TPM`
 - stowed packages: `zsh`, `tmux`, `nvim`
 
