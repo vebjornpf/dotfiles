@@ -1,6 +1,7 @@
 # jira
 
 Supported commands:
+- `jira auth`
 - `jira mywork`
 - `jira mywork list`
 - `jira mywork status`
@@ -51,6 +52,13 @@ Variables:
 - `JIRA_PROJECT_KEY` - required project key used by team-scoped sync
 - `JIRA_BASE_URL` - required for browse and copy URLs
 - `JIRA_BOARD_URL` - required for `jira board`
+- `ATLASSIAN_SITE` - optional site used by `acli-jira-login`, for example `<org>.atlassian.net`
+- `ATLASSIAN_EMAIL` - optional Atlassian account email used by `acli-jira-login`
+- `ATLASSIAN_API_TOKEN` - optional Atlassian API token read by `acli-jira-login`
+
+Helper:
+- `jira auth` logs `acli` into Jira by piping `ATLASSIAN_API_TOKEN` to `acli jira auth login`
+- `acli-jira-login` remains available as a shell helper and delegates to `jira auth`
 
 State files:
 - `all-current.json` - synced project items not assigned to you
@@ -66,4 +74,7 @@ Example:
 export JIRA_PROJECT_KEY="<KEY>"
 export JIRA_BASE_URL="https://<org>.atlassian.net"
 export JIRA_BOARD_URL="https://<org>.atlassian.net/jira/software/..."
+export ATLASSIAN_SITE="<org>.atlassian.net"
+export ATLASSIAN_EMAIL="<you@example.com>"
+export ATLASSIAN_API_TOKEN="<token>"
 ```

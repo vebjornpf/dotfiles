@@ -6,7 +6,14 @@ export JIRA_STATE_DIR="$HOME/git/daily/jira"
 #   JIRA_PROJECT_KEY
 #   JIRA_BASE_URL
 #   JIRA_BOARD_URL
+#   ATLASSIAN_SITE
+#   ATLASSIAN_EMAIL
+#   ATLASSIAN_API_TOKEN
 [[ -f "$HOME/.config/local/tools.zsh" ]] && source "$HOME/.config/local/tools.zsh"
+
+acli-jira-login() {
+  jira auth "$@"
+}
 
 local jira_bin_dir="$JIRA_HOME/bin"
 
@@ -28,7 +35,7 @@ _jira() {
   local create_needs_value_for
   local has_summary_option has_component_option has_description_option has_assign_option
 
-  top_level=(backlog board component create epics item mywork statusline sync)
+  top_level=(auth backlog board component create epics item mywork statusline sync)
   board_commands=(open)
   sync_targets=(all mywork)
   mywork_commands=(list status, sync)

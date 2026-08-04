@@ -77,6 +77,7 @@ Notes:
 - `./bootstrap.sh core` supports Homebrew and `apt-get`
 - it may prompt when setting your default shell to `zsh`
 - on Debian/Ubuntu, the bootstrap creates a `~/.local/bin/bat` wrapper if the system package only provides `batcat`
+- the `zsh` package provides a minimal `~/.local/bin/xdg-open` shim that uses `explorer.exe` on WSL and `open` on macOS
 - tmux still needs `prefix + I` once after bootstrap to install plugins
 - configure your terminal to use a Nerd Font for tmux icons
 - `./bootstrap.sh tools` expects your local tool variables in `~/.config/local/tools.zsh`

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
+source "$JIRA_HOME/lib/env.sh"
+
+if (( $# > 0 )) && [[ "$1" =~ ^(-h|--help|help)$ ]]; then
+  cat <<'EOF'
+Usage: jira auth
+
+Log `acli` into Jira using these variables from ~/.config/local/tools.zsh:
+  ATLASSIAN_SITE
+  ATLASSIAN_EMAIL
+  ATLASSIAN_API_TOKEN
+EOF
+  exit 0
+fi
+
+if (( $# > 0 )); then
+  echo "jira auth does not accept arguments" >&2
+  exit 1
+fi
+
+if [[ -z "${ATLASSIAN_SITE:-}" || -z "${ATLASSIAN_EMAIL:-}" || -z "${ATLASSIAN_API_TOKEN:-}" ]]; then
+  echo "jira auth: set ATLASSIAN_SITE, ATLASSIAN_EMAIL, and ATLASSIAN_API_TOKEN first" >&2
+  exit 1
+fi
+
+printf '%s\n' "$ATLASSIAN_API_TOKEN" |
+  acli jira auth login --site "$ATLASSIAN_SITE" --email "$ATLASSIAN_EMAIL" --token

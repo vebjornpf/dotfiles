@@ -33,7 +33,7 @@ Repo output:
   .sonar/issues-<quality>.json
 
 Local config:
-  ~/.config/local/sonar.zsh
+  ~/.config/local/tools.zsh
     export SONAR_BASE_URL="https://sonar.example.com"
     export SONAR_TOKEN="<token>"
 EOF

@@ -11,6 +11,7 @@ Usage: jira [command]
 
 Commands:
   jira        open or select tmux session "daily" and window "jira"
+  jira auth       log acli into Jira using local Atlassian env vars
   jira backlog    open Jira backlog picker
   jira board      open configured Jira board in browser
   jira component  browse open issues by Jira component
@@ -20,10 +21,13 @@ Commands:
   jira mywork     manage my Jira work
   jira statusline print compact sync ages for tmux
   jira sync       run Jira sync
-  Private variables can be set in ~/.config/local/jira.zsh:
+  Private variables can be set in ~/.config/local/tools.zsh:
     JIRA_PROJECT_KEY
     JIRA_BASE_URL
     JIRA_BOARD_URL
+    ATLASSIAN_SITE
+    ATLASSIAN_EMAIL
+    ATLASSIAN_API_TOKEN
   Run `jira <command> --help` for command-specific help.
   jira --help show this help
 EOF
@@ -34,6 +38,10 @@ if (( $# > 0 )); then
     -h|--help|help)
       usage
       exit 0
+      ;;
+    auth)
+      shift
+      exec "$JIRA_HOME/bin/jira-auth" "$@"
       ;;
     backlog)
       shift
