@@ -6,23 +6,35 @@ JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
 
 usage() {
   cat <<'EOF'
-Usage: jira epics
+Usage: jira epics [list|picker]
+       jira epics <EPIC-KEY> [open]
+       jira epics <EPIC-KEY> subtasks <list|status> [--json]
 
-Open Jira epics picker from cached sync data.
+  jira epics        show this help
+  jira epics list   print cached epics
+  jira epics picker open the cached interactive picker
+  jira epics <KEY> open   open the epic in a browser
+  jira epics <KEY> subtasks list   query all issues under an epic
+  jira epics <KEY> subtasks status group epic issues by status
 EOF
 }
 
 case "${1:-}" in
-  "")
-    JIRA_SKIP_SYNC=1 exec bash "$JIRA_HOME/lib/pick.sh" epics "Jira Epics"
+  ""|-h|--help|help) usage ;;
+  list|picker)
+    command="$1"
+    shift
+    exec bash "$JIRA_HOME/lib/view-command.sh" epics "$command" "$@"
     ;;
-  -h|--help|help)
-    usage
+  [A-Z][A-Z0-9]*-[0-9][0-9]*)
+    epic_key="$1"
+    shift
+    if [[ "${1:-}" == open ]]; then
+      exec acli jira workitem view "$epic_key" --web
+    fi
+    [[ "${1:-}" == subtasks ]] || { echo "Expected 'open' or 'subtasks' after epic key" >&2; usage >&2; exit 1; }
+    shift
+    exec bash "$JIRA_HOME/lib/epic-subtasks.sh" "$epic_key" "$@"
     ;;
-  *)
-    echo "Unknown jira epics argument: $1" >&2
-    echo >&2
-    usage >&2
-    exit 1
-    ;;
+  *) echo "Unknown jira epics argument: $1" >&2; usage >&2; exit 1 ;;
 esac

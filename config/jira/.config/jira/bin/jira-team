@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
+
+usage() {
+  cat <<'EOF'
+Usage: jira team [list|status|picker]
+
+  jira team        show this help
+  jira team list   print cached active project issues
+  jira team status group cached issues by status
+  jira team picker open the cached interactive picker
+EOF
+}
+
+case "${1:-}" in
+  ""|-h|--help|help) usage ;;
+  list|status|picker)
+    command="$1"
+    shift
+    exec bash "$JIRA_HOME/lib/view-command.sh" team "$command" "$@"
+    ;;
+  *) echo "Unknown jira team argument: $1" >&2; usage >&2; exit 1 ;;
+esac

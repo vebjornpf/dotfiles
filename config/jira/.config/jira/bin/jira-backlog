@@ -6,25 +6,20 @@ JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
 
 usage() {
   cat <<'EOF'
-Usage: jira backlog
+Usage: jira backlog [list|picker]
 
-Commands:
-  jira backlog        open Jira backlog picker
-  jira backlog --help show this help
+  jira backlog        show this help
+  jira backlog list   print cached backlog issues
+  jira backlog picker open the cached interactive picker
 EOF
 }
 
 case "${1:-}" in
-  "")
-    exec bash "$JIRA_HOME/lib/pick.sh" backlog "Jira Backlog"
+  ""|-h|--help|help) usage ;;
+  list|picker)
+    command="$1"
+    shift
+    exec bash "$JIRA_HOME/lib/view-command.sh" backlog "$command" "$@"
     ;;
-  -h|--help|help)
-    usage
-    ;;
-  *)
-    echo "Unknown jira backlog argument: $1" >&2
-    echo >&2
-    usage >&2
-    exit 1
-    ;;
+  *) echo "Unknown jira backlog argument: $1" >&2; usage >&2; exit 1 ;;
 esac

@@ -19,6 +19,14 @@
   - `description`: a short phrase describing what the command does (e.g. "list PRs assigned to user")
   - `tool`: the main CLI tool used (e.g. `gh`, `git`, `npm`, `docker`)
 
+# Git workflow
+
+- Never create a pull request.
+- Before any commit, propose the exact commit message and wait for explicit user approval.
+- Keep commit messages short, concise, and informative.
+- Default to a single-line subject unless extra context is genuinely necessary.
+- Do not run `git commit` until the user has approved the message.
+
 # Local Skills
 
 - Use the `sonar-workflow` skill when working in repos that use `.sonar/project`, `sonar sync`, and generated `.sonar/issues-*.json` files.
@@ -26,6 +34,21 @@
 # Jira
 
 - Agents may use the `jira` CLI for Jira-related tasks.
-- Prefer cached and read-oriented commands first: `jira mywork list`, `jira mywork status`, `jira mywork <KEY> print`, `jira item <KEY> print`.
-- Use `jira sync mywork` when fresher Jira data is needed.
-- Avoid mutating Jira state unless the user explicitly asks. Mutating commands include `jira create` and `jira item <KEY> move`.
+- Use `jira team list --json` for cached active project work.
+- Use `jira me list --json` for cached issues assigned to the current user.
+- Use `jira backlog list --json` for cached backlog issues.
+- Use `jira item <KEY> --json` for cached issue summary data.
+- Use `jira item <KEY> --more --json` for live detailed issue information, including comments and richer fields.
+- Use `jira sync` when the summary cache is missing or stale.
+- Use `jira` and scope commands for help; use explicit `picker` commands for interactive selection.
+- Use the CLI rather than reading Jira cache files directly.
+- Avoid mutating Jira state unless the user explicitly asks. Mutating commands include `jira create`.
+
+When a task may relate to existing Jira work, inspect the user's assigned issues first. Use descriptions, status, reporter, assignee, priority, and issue type to connect the request to existing work. If the relationship is unclear, mention likely issue keys and ask before assuming scope.
+
+- Start with `jira me list --json` for assigned non-done issues.
+- Use `jira me status` to understand assigned work grouped by status.
+- Use `jira item <KEY> --json` for cached issue details.
+- Use `jira item <KEY> --more --json` when live Jira details are needed.
+- Use `jira epics list --json` for project epic context.
+- Use `jira doctor` to diagnose local Jira setup.

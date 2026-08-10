@@ -3,48 +3,4 @@
 set -euo pipefail
 
 JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
-
-usage() {
-  cat <<'EOF'
-Usage: jira sync [target]
-
-Targets:
-  jira sync         sync all supported targets
-  jira sync all     sync team items not assigned to me
-  jira sync mywork  sync my work
-  jira sync --help  show this help
-EOF
-}
-
-case "${1:-all}" in
-  -h|--help|help)
-    usage
-    ;;
-  all)
-    shift || true
-    if (( $# > 0 )); then
-      echo "Unknown jira sync argument: $1" >&2
-      echo >&2
-      usage >&2
-      exit 1
-    fi
-    exec bash "$JIRA_HOME/lib/sync.sh"
-    ;;
-  mywork)
-    target="$1"
-    shift
-    if (( $# > 0 )); then
-      echo "Unknown jira sync $target argument: $1" >&2
-      echo >&2
-      echo "Usage: jira sync $target" >&2
-      exit 1
-    fi
-    exec bash "$JIRA_HOME/lib/sync.sh" "$target"
-    ;;
-  *)
-    echo "Unknown jira sync target: $1" >&2
-    echo >&2
-    usage >&2
-    exit 1
-    ;;
-esac
+exec bash "$JIRA_HOME/lib/sync.sh" "$@"

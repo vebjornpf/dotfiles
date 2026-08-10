@@ -6,7 +6,7 @@ description: Use when the user wants to create a branch, apply changes, and comm
 # Git Commit Skill
 
 ## Purpose
-Create a new branch, apply changes, stage the intended files, and commit with a conventional commit message. Never push.
+Create a new branch, apply changes, stage the intended files, and commit with a short, informative commit message. Never push.
 
 ## Use When
 - The user asks to commit changes to a new branch
@@ -21,7 +21,10 @@ Create a new branch, apply changes, stage the intended files, and commit with a 
 - Never create a PR
 - Never commit to main/master directly
 - Only stage files relevant to the change — never `git add .` blindly
-- Use conventional commit format: `type(scope): short description` with a body explaining the why
+- Propose the exact commit message and wait for explicit user approval before running `git commit`
+- Keep the commit message short, concise, and informative
+- Default to a single-line conventional commit subject: `type(scope): short description`
+- Only add a commit body when the user asks for it or the extra context is genuinely necessary
 - Derive branch name from the change type and a short description: `fix/short-description`, `feat/short-description`, `chore/short-description`
 - Check git status before and after staging to confirm only intended files are included
 - If the repo has uncommitted changes unrelated to the task, leave them unstaged
@@ -34,17 +37,17 @@ Create a new branch, apply changes, stage the intended files, and commit with a 
 5. Draft the commit message and present it to the user for approval — do not commit until the user confirms
 6. Stage only the intended files: `git add <specific files>`
 7. Run `git status` again to verify what is staged
-8. Commit with the agreed conventional commit message
+8. Commit with the approved commit message
 9. Confirm the commit with `git log --oneline -3`
 
 ## Commit Message Format
 
-**Simple** — use when the change is small, obvious, or self-contained:
+Default format:
 ```
 type(scope): short summary
 ```
 
-**Detailed** — use when the change is non-trivial, fixes a bug with a specific cause, or has important context:
+Only use a body when the user asks for one or the change genuinely needs extra context:
 ```
 type(scope): short summary
 
@@ -54,7 +57,7 @@ Longer description explaining:
 - Any caveats or follow-ups
 ```
 
-When drafting the message, propose the appropriate format and let the user decide if they want more or less detail before committing.
+When drafting the message, prefer a single-line subject and ask for approval before committing.
 
 Types: `fix`, `feat`, `chore`, `docs`, `refactor`, `test`
 

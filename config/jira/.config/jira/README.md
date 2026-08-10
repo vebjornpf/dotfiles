@@ -1,80 +1,53 @@
 # jira
 
-Supported commands:
-- `jira auth`
-- `jira mywork`
-- `jira mywork list`
-- `jira mywork status`
-- `jira item <KEY>`
-- `jira item <KEY> open`
-- `jira item <KEY> cp`
-- `jira item <KEY> cpk`
-- `jira item <KEY> print`
-- `jira item <KEY> move`
-- `jira mywork <KEY> print`
-- `jira statusline`
-- `jira backlog`
-- `jira board`
-- `jira board open`
-- `jira component`
-- `jira create`
-- `jira epics`
+The Jira CLI uses one summary cache at `$JIRA_STATE_DIR/project-current.json`.
+
+Commands:
+- `jira`
 - `jira sync`
-- `jira sync all`
-- `jira sync mywork`
+- `jira doctor [--json]`
+- `jira team [list|picker]`
+- `jira team status`
+- `jira me [list|status|picker|<KEY>]`
+- `jira backlog [list|picker]`
+- `jira epics [list|picker]`
+- `jira epics <KEY> open` - open the epic in a browser
+- `jira epics <KEY> subtasks list [--json]`
+- `jira epics <KEY> subtasks status`
+- `jira item <KEY> [--json]`
+- `jira item <KEY> --more [--json]`
+- `jira item <KEY> open` - open the issue in a browser
+- `jira item <KEY> assign` - assign the issue to the configured current user
+- `jira item <KEY> transition [STATUS]` - transition the issue, or open a status picker
+- `jira item <KEY> cp` - copy the issue URL
+- `jira item <KEY> cpk` - copy the issue key
+- `jira auth`
+- `jira board`
+- `jira create`
+- `jira statusline`
 
-`jira create` creates a work item in `TDX` using `<EPIC-KEY> <Story|Spike|Bug> <Low|Medium|High>` plus flags. `--summary` and `--component` are required. If `--description` is omitted it opens `$EDITOR` at the end for optional free text. `--assign` explicitly assigns the created item to you after creation.
+`list` reads a cached filtered summary. `status` reads the same cache and groups issues by status. `picker` opens an interactive cached view. Bare scope commands show help. `jira item <KEY>` reads the cache; `--more` runs `acli jira workitem view <KEY>` live. Item actions `assign`, `transition`, `open`, `cp`, and `cpk` assign, transition, open, or copy the issue.
 
-`jira epics` opens a cached picker showing only epic issues from `all-current.json`. It does not trigger a sync.
+`jira epics <KEY> subtasks list` and `status` run a live paginated query for all issues under the epic, including done issues. The `subtasks` term refers to an epic's child issues; Jira may classify them as stories, tasks, bugs, spikes, or other issue types.
 
-It fetches issue types from live Jira project metadata.
+The `team` and `me` views show only assigned, non-done project issues, including backlog items. `me` matches the configured `JIRA_ACCOUNT_ID`; `team` includes assignments to anyone. The separate `backlog` view includes all backlog issues.
 
-`jira component` lets you fuzzy-pick one component, then opens a picker with all non-done issues using that component.
+`jira sync` runs one query for all non-done issues in `JIRA_PROJECT_KEY`:
 
-Picker shortcuts:
-- `alt-a` assign selected issue to you
-- `alt-s` pick a status and transition the selected issue
-
-Selection sources:
-- shell completion for epic key: cached `epics-completion.tsv`
-- shell completion for `--component`: cached `components.tsv` when available
-
-Example create command:
-
-```bash
-jira create TDX-123 Story High --summary "Investigate issue" --component api --assign
+```text
+project = <JIRA_PROJECT_KEY> AND statusCategory != Done ORDER BY updated DESC
 ```
 
-Local config:
-- `~/.config/local/tools.zsh`
+The sync derives `team-completion.tsv`, `me-completion.tsv`, `backlog-completion.tsv`, and `epics-completion.tsv` from the canonical cache. These files are never synced independently. The installed `acli` search command does not accept `components` or `updated` as requested fields, so those fields are not currently included in the summary cache.
 
-Variables:
-- `JIRA_PROJECT_KEY` - required project key used by team-scoped sync
-- `JIRA_BASE_URL` - required for browse and copy URLs
+`jira doctor` is read-only. It checks local configuration, required commands, the state directory, and cache presence. It does not contact Jira.
+
+Local config is loaded from `~/.config/local/tools.zsh`:
+- `JIRA_PROJECT_KEY` - required project key
+- `JIRA_ACCOUNT_ID` - required for `jira me`
+- `JIRA_BASE_URL` - required for rendered lists and browse URLs
+- `JIRA_STATE_DIR` - optional state directory override
 - `JIRA_BOARD_URL` - required for `jira board`
-- `ATLASSIAN_SITE` - optional site used by `acli-jira-login`, for example `<org>.atlassian.net`
-- `ATLASSIAN_EMAIL` - optional Atlassian account email used by `acli-jira-login`
-- `ATLASSIAN_API_TOKEN` - optional Atlassian API token read by `acli-jira-login`
+- `ATLASSIAN_SITE`, `ATLASSIAN_EMAIL`, `ATLASSIAN_API_TOKEN` - used by `jira auth`
 
-Helper:
-- `jira auth` logs `acli` into Jira by piping `ATLASSIAN_API_TOKEN` to `acli jira auth login`
-- `acli-jira-login` remains available as a shell helper and delegates to `jira auth`
-
-State files:
-- `all-current.json` - synced project items not assigned to you
-- `mywork-current.json` - synced items assigned to you
-- `all-completion.tsv` - derived completion for all tasks
-- `mywork-completion.tsv` - derived completion for my tasks
-- `backlog-completion.tsv` - derived completion for backlog tasks
-- `epics-completion.tsv` - derived completion for epics
-
-Example:
-
-```zsh
-export JIRA_PROJECT_KEY="<KEY>"
-export JIRA_BASE_URL="https://<org>.atlassian.net"
-export JIRA_BOARD_URL="https://<org>.atlassian.net/jira/software/..."
-export ATLASSIAN_SITE="<org>.atlassian.net"
-export ATLASSIAN_EMAIL="<you@example.com>"
-export ATLASSIAN_API_TOKEN="<token>"
-```
+Issue creation still accepts `--component`; standalone component browsing is not currently part of the CLI.

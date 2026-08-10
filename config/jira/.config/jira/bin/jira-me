@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+JIRA_HOME="${JIRA_HOME:-$HOME/.config/jira}"
+
+usage() {
+  cat <<'EOF'
+Usage: jira me [list|status|picker|<KEY> [--more] [--json]]
+
+  jira me        show this help
+  jira me list   print cached issues assigned to you
+  jira me status group cached issues by status
+  jira me picker open the cached interactive picker
+EOF
+}
+
+case "${1:-}" in
+  ""|-h|--help|help) usage ;;
+  list|status|picker)
+    command="$1"
+    shift
+    exec bash "$JIRA_HOME/lib/view-command.sh" me "$command" "$@"
+    ;;
+  [A-Z][A-Z0-9]*-[0-9]*)
+    key="$1"
+    shift
+    exec "$JIRA_HOME/bin/jira-item" "$key" "$@"
+    ;;
+  *) echo "Unknown jira me argument: $1" >&2; usage >&2; exit 1 ;;
+esac
