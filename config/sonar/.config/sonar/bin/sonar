@@ -15,6 +15,7 @@ Commands:
   sonar export [quality...]   export repo files from cached payloads
   sonar status [quality...]   print issue counts from exported repo files
   sonar path [quality]        print cache and export paths
+  sonar pr <number>           print new/fixed issues, fix effort, and the PR URL
   sonar web                   open the current repo's Sonar project in the browser
 
 Qualities:
@@ -62,6 +63,10 @@ main() {
     path)
       shift || true
       sonar_path "$@"
+      ;;
+    pr)
+      shift || true
+      sonar_pr "$@"
       ;;
     web)
       shift || true

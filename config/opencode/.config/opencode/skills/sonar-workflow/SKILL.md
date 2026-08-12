@@ -19,12 +19,14 @@ description: Use when working with a repo that uses the local Sonar setup based 
 
 ## Rules
 - Repo config lives in `.sonar/project`.
+- If `.sonar/project` is missing, Sonar commands create it with `projectKey=` and `branch=main`; set the key before retrying.
 - Global Sonar connection config lives in `~/.config/local/tools.zsh`.
 - Generated raw payloads live in `.sonar/raw/issues-<quality>.json`.
 - Generated rule metadata lives in `.sonar/raw/rules/<repository>/<rule>.json`.
 - Generated normalized outputs live in `.sonar/issues-<quality>.json`.
 - Do not edit generated `.sonar/raw/*.json` or `.sonar/issues-*.json` by hand.
 - If fresh Sonar data is needed, run `sonar sync` from the repo root.
+- For pull request counts and the Sonar dashboard URL, run `sonar pr <number>` from the repo root.
 - If rule guidance is needed, run `sonar rules` after syncing issues.
 - Prefer reading `.sonar/issues-*.json` over raw files.
 

@@ -55,11 +55,26 @@ require_repo_root() {
   printf '%s\n' "$root"
 }
 
+ensure_repo_config() {
+  local root="$1" file
+
+  file="$root/.sonar/project"
+  [[ -f "$file" ]] && return 0
+
+  mkdir -p "${file%/*}"
+  if [[ ! -e "$file" ]]; then
+    printf 'projectKey=\nbranch=main\n' >"$file"
+    echo "Created Sonar repo config: $file" >&2
+    echo 'Set projectKey in that file, then run the command again' >&2
+  fi
+}
+
 load_repo_config() {
   local root file line key value
 
   root="$(require_repo_root)"
   file="$root/.sonar/project"
+  ensure_repo_config "$root"
 
   if [[ ! -f "$file" ]]; then
     echo "Missing repo config: $file" >&2
@@ -355,6 +370,45 @@ sonar_path() {
 
 sonar_web() {
   open_url "$(sonar_project_web_url)"
+}
+
+fetch_pr_issue_stats() {
+  local pull_request="$1" issue_filter="$2"
+
+  require_sonar_base_url
+  require_sonar_token
+  load_repo_config
+
+  curl -fsS -u "$SONAR_TOKEN:" --get \
+    "$SONAR_BASE_URL/api/issues/search" \
+    --data-urlencode "componentKeys=$SONAR_PROJECT_KEY" \
+    --data-urlencode "$issue_filter=$pull_request" \
+    --data-urlencode 'ps=1' \
+    | jq -r '[.paging.total // .total // 0, (.effortTotal // 0)] | @tsv'
+}
+
+sonar_pr() {
+  local pull_request="${1:-}"
+  local new_stats fixed_stats new_issues new_effort fixed_issues url
+
+  if [[ ! "$pull_request" =~ ^[0-9]+$ ]] || (( pull_request == 0 )); then
+    echo 'Usage: sonar pr <positive pull request number>' >&2
+    exit 1
+  fi
+
+  new_stats="$(fetch_pr_issue_stats "$pull_request" pullRequest)"
+  fixed_stats="$(fetch_pr_issue_stats "$pull_request" fixedInPullRequest)"
+  IFS=$'\t' read -r new_issues new_effort <<<"$new_stats"
+  IFS=$'\t' read -r fixed_issues _ <<<"$fixed_stats"
+  require_sonar_base_url
+  load_repo_config
+  url="${SONAR_BASE_URL%/}/dashboard?id=$SONAR_PROJECT_KEY&pullRequest=$pull_request"
+
+  printf 'Pull request: %s\n' "$pull_request"
+  printf 'New issues: %s\n' "$new_issues"
+  printf 'Estimated fix effort: %smin\n' "$new_effort"
+  printf 'Fixed issues: %s\n' "$fixed_issues"
+  printf 'Sonar URL: %s\n' "$url"
 }
 
 fetch_rule_to_cache() {

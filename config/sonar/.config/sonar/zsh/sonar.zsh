@@ -15,7 +15,7 @@ fi
 _sonar() {
   local -a commands qualities
 
-  commands=(sync rules export status path web)
+  commands=(sync rules export status path pr web)
   qualities=(maintainability security reliability all)
 
   if (( CURRENT == 2 )); then

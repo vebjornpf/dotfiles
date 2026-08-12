@@ -1,9 +1,36 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "instructions": ["AGENTS.md"],
+  "references": {
+    "git": {
+      "path": "~/git",
+      "description": "Local git checkout root. Safe to read for context across repositories."
+    }
+  },
   "permission": {
+    "external_directory": {
+      "*": "ask",
+      "~/git/**": "allow"
+    },
+    "read": {
+      "*": "ask",
+      "~/git/**": "allow"
+    },
+    "glob": {
+      "*": "ask",
+      "~/git/**": "allow"
+    },
+    "grep": {
+      "*": "ask",
+      "~/git/**": "allow"
+    },
+    "list": {
+      "*": "ask",
+      "~/git/**": "allow"
+    },
+    "edit": "ask",
     "bash": {
-      "*": "allow",
+      "*": "ask",
       "git commit*": "ask",
       "gh pr create*": "deny",
       "gh api *pulls*": "deny"

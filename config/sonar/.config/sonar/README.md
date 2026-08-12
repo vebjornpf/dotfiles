@@ -9,6 +9,7 @@ Supported commands:
 - `sonar export [quality...]`
 - `sonar status [quality...]`
 - `sonar path [quality]`
+- `sonar pr <number>`
 - `sonar web`
 
 Qualities:
@@ -26,6 +27,10 @@ Example `.sonar/project`:
 projectKey=<sonar-project-key>
 branch=main
 ```
+
+If `.sonar/project` is missing, a command creates it with an empty
+`projectKey` and `branch=main`, then stops. Set the key in the file and run the
+command again. Existing config files are never overwritten.
 
 Local config:
 - `~/.config/local/tools.zsh`
@@ -51,4 +56,5 @@ Notes:
 - `sonar sync` fetches and exports `maintainability`, `security`, and `reliability` by default
 - `sonar rules` reads `.sonar/issues-<quality>.json`, extracts unique rule keys, and fetches the matching rule details
 - `sonar export` rewrites repo files from cached payloads without calling Sonar again
+- `sonar pr <number>` queries new and fixed issues, remediation effort, and the Sonar PR URL
 - `sonar web` opens `dashboard?id=<projectKey>&branch=<branch>` for the current repo
