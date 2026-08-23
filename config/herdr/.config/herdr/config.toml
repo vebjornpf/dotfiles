@@ -1,0 +1,28 @@
+onboarding = false
+
+[terminal]
+new_cwd = "follow"
+
+[theme]
+name = "catppuccin"
+
+[ui.toast]
+delivery = "herdr"
+delay_seconds = 1
+
+[keys]
+# Keep Herdr's default Ctrl-b prefix so it can coexist with tmux's Ctrl-a.
+workspace_picker = "prefix+w"
+goto = "prefix+g"
+open_notification_target = "prefix+shift+o"
+
+[[keys.command]]
+key = "prefix+o"
+type = "popup"
+command = "~/.config/herdr/bin/workspace-picker"
+description = "fuzzy project workspace picker"
+width = "80%"
+height = "70%"
+
+[ui]
+agent_panel_sort = "spaces"

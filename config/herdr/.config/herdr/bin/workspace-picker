@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v fzf >/dev/null 2>&1; then
+  printf 'workspace-picker: fzf is required\n' >&2
+  exit 1
+fi
+
+if ! command -v herdr >/dev/null 2>&1; then
+  printf 'workspace-picker: herdr is required\n' >&2
+  exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  printf 'workspace-picker: jq is required\n' >&2
+  exit 1
+fi
+
+# Use colon-separated roots so local machines can extend the default scan.
+project_roots=${HERDR_PROJECT_ROOTS:-"$HOME/git:$HOME"}
+fyk_root=${HERDR_FYK_ROOT:-"$HOME/git/fyk"}
+projects=()
+IFS=: read -r -a roots <<< "$project_roots"
+
+for root in "${roots[@]}"; do
+  [[ -d "$root" ]] || continue
+  for dir in "$root"/*; do
+    [[ -d "$dir" ]] || continue
+    [[ "$dir" == "$fyk_root" ]] && continue
+    name=${dir##*/}
+    [[ "$name" == *-wk ]] && continue
+    projects+=("$name\t$dir")
+  done
+done
+
+# Fyk is a repository group, so expose each child repository separately.
+if [[ -d "$fyk_root" ]]; then
+  projects+=("fyk\t$fyk_root")
+
+  for dir in "$fyk_root"/*; do
+    [[ -d "$dir" ]] || continue
+    name=${dir##*/}
+    [[ "$name" == *-wk ]] && continue
+    projects+=("fyk/$name\t$dir")
+  done
+fi
+
+if ((${#projects[@]} == 0)); then
+  printf 'workspace-picker: no projects found\n' >&2
+  exit 1
+fi
+
+selected=$(
+  printf '%b\n' "${projects[@]}" |
+    sort -fu |
+    fzf \
+      --delimiter=$'\t' \
+      --with-nth=1 \
+      --prompt='projects > ' \
+      --border=rounded \
+      --border-label=' herdr workspace picker ' \
+      --header='enter: open/create | esc: cancel' \
+      --header-first \
+      --info=inline-right \
+      --preview='printf "\n %s\n" {2}' \
+      --preview-window='down,3,border-top' \
+      --preview-label=' path ' \
+      --no-scrollbar \
+      --cycle
+)
+
+[[ -n "$selected" ]] || exit 0
+
+selected_path=${selected#*$'\t'}
+selected_name=${selected%%$'\t'*}
+
+mapfile -t matching_workspace_ids < <(
+  herdr workspace list |
+    jq -r --arg label "$selected_name" \
+      '.result.workspaces[]? | select(.label == $label) | .workspace_id'
+)
+workspace_id=${matching_workspace_ids[0]-}
+
+if [[ -n "$workspace_id" ]]; then
+  herdr workspace focus "$workspace_id" >/dev/null
+else
+  create_args=(
+    workspace create
+    --cwd "$selected_path"
+    --label "$selected_name"
+    --focus
+  )
+
+  if [[ "$selected_name" == fyk || "$selected_name" == fyk/* ]]; then
+    fyk_repo_name=${selected_name#fyk/}
+    [[ "$selected_name" == fyk ]] && fyk_repo_name=all
+    create_args+=(
+      --env "FYK_REPO=1"
+      --env "FYK_ROOT=$fyk_root"
+      --env "FYK_REPO_NAME=$fyk_repo_name"
+    )
+  fi
+
+  workspace_json=$(herdr "${create_args[@]}" | jq -r '.result.workspace.workspace_id + "\t" + .result.tab.tab_id')
+  workspace_id=${workspace_json%%$'\t'*}
+  tab_id=${workspace_json#*$'\t'}
+  herdr tab rename "$tab_id" terminal >/dev/null
+fi

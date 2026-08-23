@@ -12,25 +12,14 @@
       "*": "ask",
       "~/git/**": "allow"
     },
-    "read": {
-      "*": "ask",
-      "~/git/**": "allow"
-    },
-    "glob": {
-      "*": "ask",
-      "~/git/**": "allow"
-    },
-    "grep": {
-      "*": "ask",
-      "~/git/**": "allow"
-    },
-    "list": {
-      "*": "ask",
-      "~/git/**": "allow"
-    },
-    "edit": "ask",
+    "read": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "edit": "allow",
     "bash": {
-      "*": "ask",
+      "acli *": "ask",
+      "*": "allow",
       "git commit*": "ask",
       "gh pr create*": "deny",
       "gh api *pulls*": "deny"

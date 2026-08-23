@@ -26,6 +26,7 @@ packages=(
   zsh
   nvim
   tmux
+  herdr
   opencode
 )
 
