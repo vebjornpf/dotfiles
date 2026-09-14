@@ -105,5 +105,5 @@ else
   workspace_json=$(herdr "${create_args[@]}" | jq -r '.result.workspace.workspace_id + "\t" + .result.tab.tab_id')
   workspace_id=${workspace_json%%$'\t'*}
   tab_id=${workspace_json#*$'\t'}
-  herdr tab rename "$tab_id" terminal >/dev/null
+  herdr tab rename "$tab_id" "$selected_name" >/dev/null
 fi

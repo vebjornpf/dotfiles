@@ -70,6 +70,7 @@ alias grv='git revert'
 
 # GitHub
 alias ghprc='gh pr create'
+alias ghprw='gh pr create --base main --head "$(git branch --show-current)" --web'
 alias ghprms='gh pr merge --squash'
 alias ghprm='gh pr merge -s -d --auto'
 alias gho='gh repo view --web'

@@ -5,7 +5,7 @@ return {
     build = ':TSUpdate',
     branch = 'main',
     config = function()
-      local parsers = { 'bash', 'c', 'diff', 'html', 'http', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
+      local parsers = { 'bash', 'c', 'diff', 'html', 'http', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'mermaid', 'query', 'vim', 'vimdoc' }
       require('nvim-treesitter').install(parsers)
 
       ---@param buf integer

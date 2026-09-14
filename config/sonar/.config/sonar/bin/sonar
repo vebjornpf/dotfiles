@@ -16,6 +16,7 @@ Commands:
   sonar status [quality...]   print issue counts from exported repo files
   sonar path [quality]        print cache and export paths
   sonar pr <number>           print new/fixed issues, fix effort, and the PR URL
+  sonar gate [main|<number>]  print a branch or PR quality gate and conditions
   sonar web                   open the current repo's Sonar project in the browser
 
 Qualities:
@@ -67,6 +68,10 @@ main() {
     pr)
       shift || true
       sonar_pr "$@"
+      ;;
+    gate)
+      shift || true
+      sonar_gate "$@"
       ;;
     web)
       shift || true

@@ -10,6 +10,7 @@ Supported commands:
 - `sonar status [quality...]`
 - `sonar path [quality]`
 - `sonar pr <number>`
+- `sonar gate [main|<number>]`
 - `sonar web`
 
 Qualities:
@@ -57,4 +58,5 @@ Notes:
 - `sonar rules` reads `.sonar/issues-<quality>.json`, extracts unique rule keys, and fetches the matching rule details
 - `sonar export` rewrites repo files from cached payloads without calling Sonar again
 - `sonar pr <number>` queries new and fixed issues, remediation effort, and the Sonar PR URL
+- `sonar gate [main|<number>]` queries the configured main branch by default, or a PR when given its number; it prints conditions and exits non-zero unless the gate passes
 - `sonar web` opens `dashboard?id=<projectKey>&branch=<branch>` for the current repo

@@ -4,8 +4,8 @@ return {
     cmd = 'GitLink',
     dependencies = { 'nvim-lua/plenary.nvim' },
     keys = {
-      { '<leader>gy', '<cmd>GitLink<CR>', mode = { 'n', 'v' }, desc = '[G]it link cop[Y]' },
-      { '<leader>gO', '<cmd>GitLink!<CR>', mode = { 'n', 'v' }, desc = '[G]it link [O]pen' },
+      { '<leader>gy', '<cmd>GitLink current_branch<CR>', mode = { 'n', 'v' }, desc = '[G]it branch link cop[Y]' },
+      { '<leader>gO', '<cmd>GitLink! current_branch<CR>', mode = { 'n', 'v' }, desc = '[G]it branch link [O]pen' },
     },
     opts = {},
   },

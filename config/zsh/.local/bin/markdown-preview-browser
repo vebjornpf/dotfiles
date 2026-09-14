@@ -1,0 +1,17 @@
+#!/bin/sh
+
+url=$1
+
+if command -v wslview >/dev/null 2>&1; then
+  exec wslview "$url"
+fi
+
+if command -v powershell.exe >/dev/null 2>&1; then
+  exec powershell.exe -NoProfile -Command "Start-Process '$url'"
+fi
+
+if command -v explorer.exe >/dev/null 2>&1; then
+  exec explorer.exe "$url"
+fi
+
+exec xdg-open "$url"

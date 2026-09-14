@@ -411,6 +411,45 @@ sonar_pr() {
   printf 'Sonar URL: %s\n' "$url"
 }
 
+sonar_gate() {
+  local target="${1:-main}"
+  local response status url target_label
+
+  if [[ "$target" != "main" && (! "$target" =~ ^[0-9]+$ || target == 0) ]]; then
+    echo 'Usage: sonar gate [main|positive pull request number]' >&2
+    exit 1
+  fi
+
+  require_sonar_base_url
+  require_sonar_token
+  load_repo_config
+
+  if [[ "$target" == "main" ]]; then
+    response="$(curl -fsS -u "$SONAR_TOKEN:" --get \
+      "$SONAR_BASE_URL/api/qualitygates/project_status" \
+      --data-urlencode "projectKey=$SONAR_PROJECT_KEY" \
+      --data-urlencode "branch=$SONAR_BRANCH")"
+    target_label="Branch: $SONAR_BRANCH"
+    url="${SONAR_BASE_URL%/}/dashboard?id=$SONAR_PROJECT_KEY&branch=$SONAR_BRANCH"
+  else
+    response="$(curl -fsS -u "$SONAR_TOKEN:" --get \
+      "$SONAR_BASE_URL/api/qualitygates/project_status" \
+      --data-urlencode "projectKey=$SONAR_PROJECT_KEY" \
+      --data-urlencode "pullRequest=$target")"
+    target_label="Pull request: $target"
+    url="${SONAR_BASE_URL%/}/dashboard?id=$SONAR_PROJECT_KEY&pullRequest=$target"
+  fi
+
+  status="$(jq -r '.projectStatus.status // "UNKNOWN"' <<<"$response")"
+
+  printf '%s\n' "$target_label"
+  printf 'Quality gate: %s\n' "$status"
+  jq -r '.projectStatus.conditions[]? | "Condition: \(.metricKey) \(.status) (actual: \(.actualValue // "n/a"), threshold: \(.errorThreshold // "n/a"))"' <<<"$response"
+  printf 'Sonar URL: %s\n' "$url"
+
+  [[ "$status" == "OK" ]]
+}
+
 fetch_rule_to_cache() {
   local rule_key="$1"
   local cache_file tmpfile

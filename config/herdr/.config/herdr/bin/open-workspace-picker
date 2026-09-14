@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+for command in fzf herdr jq; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    printf 'open-workspace-picker: %s is required\n' "$command" >&2
+    exit 1
+  fi
+done
+
+workspace_data=$(herdr workspace list | jq -r '.result.workspaces[]? | [.workspace_id, .label, .focused] | @tsv')
+[[ -n "$workspace_data" ]] || exit 0
+
+selected=$(printf '%s\n' "$workspace_data" | fzf \
+  --delimiter=$'\t' \
+  --with-nth=2 \
+  --prompt='workspaces > ' \
+  --border=rounded \
+  --border-label=' open workspaces ' \
+  --header='enter: focus | ctrl-x: close | esc: cancel' \
+  --header-first \
+  --info=inline-right \
+  --no-scrollbar \
+  --cycle \
+  --bind='ctrl-x:execute-silent(herdr workspace close {1})+reload(herdr workspace list | jq -r '\'' .result.workspaces[]? | [.workspace_id, .label, .focused] | @tsv'\'' )')
+
+[[ -n "$selected" ]] || exit 0
+herdr workspace focus "${selected%%$'\t'*}" >/dev/null

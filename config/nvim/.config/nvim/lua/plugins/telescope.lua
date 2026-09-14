@@ -15,6 +15,15 @@ return {
     },
     config = function()
       require('telescope').setup {
+        defaults = {
+          path_display = { 'filename_first' },
+          layout_strategy = 'horizontal',
+          layout_config = {
+            width = 0.95,
+            height = 0.90,
+            preview_width = 0.55,
+          },
+        },
         extensions = {
           ['ui-select'] = { require('telescope.themes').get_dropdown() },
         },

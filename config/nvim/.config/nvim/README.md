@@ -110,9 +110,31 @@
 - `<leader>mpr`: refresh Markdown preview.
 - `<leader>mpS`: stop Markdown preview.
 
+### Mermaid
+- `<leader>mp`: open the live Mermaid browser preview.
+- `<leader>mx`: stop the Mermaid preview server.
+- `<leader>mf`: format the current Mermaid buffer.
+- `<leader>mr`: render the diagram inline when supported.
+- `<leader>mc`: copy the Mermaid preview URL.
+- `:MermaidPreview`: open the live Mermaid browser preview.
+- `:MermaidPreviewStop`: stop the Mermaid preview server.
+- `:MermaidFormat`: format the current Mermaid buffer.
+- `:MermaidRender`: render the diagram inline when Kitty, Ghostty, or `chafa` is available.
+- `:MermaidCopyURL`: copy the Mermaid preview URL.
+
 ### Mini.nvim Mappings Used Here
 - `mini.ai`: `aa` and `ii` target the next surrounding text object.
 - `mini.surround`: default mappings are active, including `sa` add, `sd` delete, and `sr` replace.
+
+### Visual Block Help
+- Enter visual block mode with `<C-q>`.
+- Press `<leader>?` to open the visual-block help box.
+- Press `I` to insert text at the start of every selected line, then press `<Esc>` to apply it.
+- Press `A` to append text at the end of every selected line, then press `<Esc>` to apply it.
+- Press `c`, `d`, or `y` to change, delete, or yank the block.
+- Press `<` or `>` to shift the block left or right.
+- Press `J` or `K` to move the selected lines down or up.
+- The help entries are registered for visual mode (`x`), which includes visual-block mode.
 
 ## Plugins
 - `blink-cmp.lua`: `blink.cmp` completion UI with `LuaSnip` snippets and LSP/path/snippet sources.
@@ -122,7 +144,8 @@
 - `gitsigns.lua`: `gitsigns.nvim` for hunk signs, staging, resets, blame, and inline previews.
 - `guess-indent.lua`: `guess-indent.nvim` to detect indentation settings from the current file.
 - `kulala.lua`: `kulala.nvim` for running HTTP and REST requests from `.http` or `.rest` buffers.
-- `markdown-preview.lua`: `markdown-preview.nvim` with `live-server.nvim` for Markdown and Mermaid browser previews.
+- `mermaid.lua`: `mermaid.nvim` for dedicated Mermaid previews, formatting, diagnostics, and optional terminal rendering.
+- `markdown-preview.lua`: `markdown-preview.nvim` with `live-server.nvim` for full Markdown previews, including Mermaid code blocks.
 - `mini.lua`: `mini.nvim` modules currently used for `mini.ai`, `mini.surround`, and `mini.statusline`.
 - `nvim-lint.lua`: `nvim-lint` for shell linting on enter, write, and insert leave.
 - `nvim-lspconfig.lua`: `nvim-lspconfig` plus Mason tooling for LSP server setup and installation.
@@ -130,7 +153,7 @@
 - `telescope.lua`: `telescope.nvim` plus FZF and UI-select extensions for file, grep, buffer, and LSP pickers.
 - `todo-comments.lua`: `todo-comments.nvim` for highlighting and navigating TODO-style comments.
 - `tokyonight.lua`: `tokyonight.nvim` colorscheme setup using `tokyonight-night`.
-- `treesitter.lua`: `nvim-treesitter` parser management, highlighting, and indent support.
+- `treesitter.lua`: `nvim-treesitter` parser management, including Mermaid syntax highlighting and indent support.
 - `which-key.lua`: `which-key.nvim` for keymap discovery and grouped leader-key hints.
 
 ## Where To Change Things
