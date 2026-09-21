@@ -83,15 +83,10 @@ Reference: `jira` package.
 
 ## Path consistency rule
 
-Scripts reference each other and are called from tmux.conf and zsh
-modules. When a script moves, update every caller:
-
-- `config/tmux/.config/tmux/tmux.conf`
-- `config/zsh/.config/zsh/*.zsh`
-- Other scripts in `config/tmux/.config/tmux/scripts/`
+Scripts reference each other and are called from zsh modules. When a script
+moves, update every caller.
 
 ## What not to commit
 
-- `config/tmux/.config/tmux/plugins/` — managed by TPM at runtime
 - `*.log`, `.zcompdump`, `lazy-lock.json` — generated files
 - `node_modules/` — run `npm install` in `~/.config/opencode/` after stowing
