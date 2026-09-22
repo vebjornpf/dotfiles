@@ -17,14 +17,13 @@ Example: `config/zsh/.config/zsh/.zshrc` gets symlinked to `~/.config/zsh/.zshrc
 |---|---|
 | `config/zsh/` | Zsh — `.zshenv`, `.zshrc`, and all `*.zsh` modules |
 | `config/nvim/` | Neovim — `init.lua` and all Lua config |
-| `config/tmux/` | tmux — `tmux.conf`, `tmux.reset.conf`, and scripts |
 | `config/opencode/` | OpenCode AI assistant — config, skills, themes, and plugin |
 
 ## New machine setup
 
 ### Core bootstrap
 
-Use the core bootstrap first. It installs missing core dependencies, sets up shell and tmux support repos, stows the core packages, and verifies the result.
+Use the core bootstrap first. It installs missing core dependencies, sets up shell support repos, stows the core packages, and verifies the result.
 
 ```sh
 git clone https://github.com/<you>/dotfiles.git ~/git/dotfiles
@@ -34,10 +33,9 @@ cd ~/git/dotfiles
 
 Core bootstrap covers:
 
-- system packages: `git`, `stow`, `zsh`, `tmux`, `neovim`, `fzf`, `ripgrep`, `bat`
+- system packages: `git`, `stow`, `zsh`, `neovim`, `fzf`, `ripgrep`, `bat`
 - shell support: `oh-my-zsh` with the repo's `catppuccin` theme, `zsh-autosuggestions`, `zsh-syntax-highlighting`
-- tmux support: `TPM`
-- stowed packages: `zsh`, `tmux`, `nvim`
+- stowed packages: `zsh`, `nvim`
 
 Helpful subcommands:
 
@@ -78,8 +76,6 @@ Notes:
 - it may prompt when setting your default shell to `zsh`
 - on Debian/Ubuntu, the bootstrap creates a `~/.local/bin/bat` wrapper if the system package only provides `batcat`
 - the `zsh` package provides a minimal `~/.local/bin/xdg-open` shim that uses `explorer.exe` on WSL and `open` on macOS
-- tmux still needs `prefix + I` once after bootstrap to install plugins
-- configure your terminal to use a Nerd Font for tmux icons
 - `./bootstrap.sh tools` expects your local tool variables in `~/.config/local/tools.zsh`
 - `./bootstrap.sh tools` does not log in to external services for you; check `gh auth status` and your `acli` auth separately
 
@@ -99,7 +95,7 @@ Install these before running `stow-all.sh`:
 
 - `git`
 - `stow` — `brew install stow` or `sudo apt install stow`
-- `zsh`, `tmux`, `nvim` — your preferred method
+- `zsh`, `nvim` — your preferred method
 
 ### Steps
 
@@ -111,19 +107,6 @@ cd ~/git/dotfiles
 
 If files already exist at the target paths (e.g. an existing `~/.zshrc`), stow will
 refuse to overwrite them. Remove or back up the conflicting files first, then re-run.
-
-### After stowing tmux
-
-tmux plugins are managed by [TPM](https://github.com/tmux-plugins/tpm). Install it once:
-
-```sh
-git clone https://github.com/tmux-plugins/tpm ~/.config/tmux/plugins/tpm
-```
-
-Then open tmux and press `prefix + I` to install all plugins.
-
-This tmux config uses Nerd Font icons in the status bar. Your terminal must be
-configured to use a Nerd Font, or the icons will show up as `?`.
 
 ### After stowing opencode
 

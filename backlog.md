@@ -10,7 +10,7 @@
 - Remove the item when the work is complete
 
 ## Items
-- [ ] terminal: centralize scrolling behavior across OpenCode, tmux, fzf, and neovim (`backlog/terminal-centralize-scrolling.md`)
+- [ ] terminal: centralize scrolling behavior across OpenCode, fzf, and neovim (`backlog/terminal-centralize-scrolling.md`)
 - [ ] sonar: investigate terminal workflow for SonarQube and SonarLint (`backlog/sonar-terminal-workflow.md`)
 - [ ] git: add a stowable global ignore file for patterns such as `.sonar/`
 - [ ] tooling: define a testing strategy for commands, help, autocompletion, setup, and failure paths (`backlog/testing-strategy.md`)

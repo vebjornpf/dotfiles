@@ -1,4 +1,4 @@
-# terminal: centralize scrolling behavior across OpenCode, tmux, fzf, and neovim
+# terminal: centralize scrolling behavior across OpenCode, fzf, and neovim
 
 ## Context
 The terminal stack currently has multiple unrelated scrolling models, which makes keyboard navigation inconsistent.
@@ -18,11 +18,6 @@ The terminal stack currently has multiple unrelated scrolling models, which make
 - Default behavior: `Shift+PageUp` and `Shift+PageDown` scroll terminal history up and down
 - Repo context: no zsh scroll remaps were found in this repo
 
-### tmux
-- Default behavior: mouse wheel scrolls pane history
-- Keyboard behavior: scrollback uses tmux copy-mode
-- Repo context: `config/tmux/.config/tmux/tmux.conf` enables `mouse on`, `mode-keys vi`, and large scrollback history; `config/tmux/.config/tmux/tmux.reset.conf` only adds `v` for selection in copy-mode
-
 ### fzf
 - Default behavior: `Shift+Up` and `Shift+Down` scroll the preview window
 - Repo context: local `fzf` usage adds layout and preview options, but no custom preview-scroll bindings were found
@@ -37,13 +32,13 @@ Make scrolling feel more coherent across the terminal stack without breaking eac
 
 ## Questions
 - Which keyboard shortcuts should be treated as the preferred cross-tool scroll keys?
-- Which layer should own `PageUp` and `PageDown`: terminal, tmux, or inner app?
+- Which layer should own `PageUp` and `PageDown`: terminal or inner app?
 - Where should consistency stop because the tool semantics differ too much?
 
 ## Proposed approach
 1. Define one preferred keyboard scheme for conversation/UI scrolling, preview scrolling, pane scrollback, and editor scrolling
-2. Map that scheme in OpenCode, tmux, and `fzf` where practical
-3. Keep explicit exceptions documented where behavior cannot be unified, such as tmux scrollback using copy-mode
+2. Map that scheme in OpenCode and `fzf` where practical
+3. Keep explicit exceptions documented where behavior cannot be unified
 4. Add short docs for the chosen conventions so they are discoverable later
 
 ## Notes

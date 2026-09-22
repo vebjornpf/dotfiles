@@ -28,8 +28,8 @@ Usage:
 EOF
 }
 
-core_packages=(zsh tmux nvim)
-core_commands=(git stow zsh tmux nvim fzf rg bat)
+core_packages=(zsh nvim)
+core_commands=(git stow zsh nvim fzf rg bat)
 tools_packages=(jira ghpr ghrepo sonar web opencode)
 tools_commands=(gh jq curl acli node npm)
 core_paths=(
@@ -37,10 +37,8 @@ core_paths=(
   'catppuccin theme|t|catppuccin theme'
   'zsh-autosuggestions plugin|d|~/.oh-my-zsh/custom/plugins/zsh-autosuggestions'
   'zsh-syntax-highlighting plugin|d|~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting'
-  'tmux TPM|d|~/.config/tmux/plugins/tpm'
   '~/.zshenv|e|~/.zshenv'
   '~/.config/zsh/.zshrc|e|~/.config/zsh/.zshrc'
-  '~/.config/tmux/tmux.conf|e|~/.config/tmux/tmux.conf'
   '~/.config/nvim/init.lua|e|~/.config/nvim/init.lua'
 )
 tools_paths=(
@@ -148,8 +146,7 @@ ensure_support_repos() {
   for entry in \
     'https://github.com/ohmyzsh/ohmyzsh.git|~/.oh-my-zsh' \
     'https://github.com/zsh-users/zsh-autosuggestions|~/.oh-my-zsh/custom/plugins/zsh-autosuggestions' \
-    'https://github.com/zsh-users/zsh-syntax-highlighting.git|~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting' \
-    'https://github.com/tmux-plugins/tpm|~/.config/tmux/plugins/tpm'
+    'https://github.com/zsh-users/zsh-syntax-highlighting.git|~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting'
   do
     repo=${entry%%|*}
     target=$(expand_home "${entry#*|}")
@@ -264,7 +261,6 @@ check_core() {
   log "EDITOR=${EDITOR:-<unset>}"
   log "VISUAL=${VISUAL:-<unset>}"
   log "SHELL=${SHELL:-<unset>}"
-  warn 'Manual checks still required: Nerd Font configured in terminal, open tmux and press prefix + I after first link'
 }
 
 install_core() {
@@ -296,7 +292,6 @@ link_core() {
 verify_core() {
   report_commands 1 "${core_commands[@]}" && report_paths 1 "${core_paths[@]}" || die 'Core bootstrap verification failed'
   log 'Core bootstrap verification passed'
-  warn 'Still do these manually: start a new login shell, open tmux and press prefix + I, configure a Nerd Font in your terminal'
 }
 
 report_required_vars() {
