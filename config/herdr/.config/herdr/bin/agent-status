@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if ! command -v herdr >/dev/null 2>&1; then
+  printf 'agent-status: herdr is required\n' >&2
+  exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  printf 'agent-status: jq is required\n' >&2
+  exit 1
+fi
+
+herdr agent list | jq -C .
+printf '\nPress Enter to close...'
+read -r _

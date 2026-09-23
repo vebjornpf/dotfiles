@@ -75,7 +75,10 @@ selected=$(
 selected_path=${selected#*$'\t'}
 selected_name=${selected%%$'\t'*}
 
-mapfile -t matching_workspace_ids < <(
+matching_workspace_ids=()
+while IFS= read -r workspace_id; do
+  matching_workspace_ids+=("$workspace_id")
+done < <(
   herdr workspace list |
     jq -r --arg label "$selected_name" \
       '.result.workspaces[]? | select(.label == $label) | .workspace_id'

@@ -6,6 +6,10 @@ picker.
 ## Usage
 
 - `Ctrl-b w` - switch between workspaces
+- `Ctrl-Shift-K` / `Ctrl-Shift-J` - move to the previous or next workspace
+- `Ctrl-Shift-H` / `Ctrl-Shift-L` - move to the previous or next tab
+- `Ctrl-Shift-Alt-Up` / `Ctrl-Shift-Alt-Down` - move to the previous or next agent
+- `Ctrl-Shift-Alt-S` - show status for all agents
 - `Ctrl-b g` - open Herdr's session navigator
 - `Ctrl-b Shift-o` - fuzzy-pick a project and focus or create its workspace
 
