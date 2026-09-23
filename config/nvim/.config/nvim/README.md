@@ -44,6 +44,7 @@
 - `<leader>op`: open the current file in VS Code.
 - `<Esc><Esc>` in terminal mode: leave terminal-insert mode.
 - `<C-h>`, `<C-j>`, `<C-k>`, `<C-l>`: move between windows.
+- The top of each window shows the current file path; `%m` marks modified files.
 
 ### File Browsing
 - `<leader>e`: smart `nvim-tree` toggle or focus current file in the tree.
