@@ -14,13 +14,13 @@ delay_seconds = 1
 # Keep Herdr's default Ctrl-b prefix so it can coexist with tmux's Ctrl-a.
 workspace_picker = "prefix+w"
 goto = "prefix+g"
-previous_workspace = "ctrl+shift+k"
-next_workspace = "ctrl+shift+j"
-previous_tab = "ctrl+shift+h"
-next_tab = "ctrl+shift+l"
+previous_workspace = "ctrl+alt+k"
+next_workspace = "ctrl+alt+j"
+previous_tab = "ctrl+alt+h"
+next_tab = "ctrl+alt+l"
 open_notification_target = "prefix+shift+o"
-previous_agent = "ctrl+shift+alt+up" # previous agent; shown in prefix help
-next_agent = "ctrl+shift+alt+down" # next agent; shown in prefix help
+previous_agent = "ctrl+alt+up" # previous agent; shown in prefix help
+next_agent = "ctrl+alt+down" # next agent; shown in prefix help
 rename_workspace = ""
 
 [[keys.command]]
@@ -45,6 +45,14 @@ type = "popup"
 command = "~/.config/herdr/bin/open-workspace-picker"
 description = "focus or close an open workspace"
 width = "70%"
+height = "60%"
+
+[[keys.command]]
+key = "prefix+t"
+type = "popup"
+command = "~/.config/herdr/bin/tab-picker"
+description = "fuzzy-pick a tab in the current workspace"
+width = "80%"
 height = "60%"
 
 [ui]

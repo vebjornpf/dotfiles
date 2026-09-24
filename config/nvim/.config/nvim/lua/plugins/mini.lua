@@ -17,6 +17,8 @@ return {
 
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.section_location = function() return '%2l:%-2v' end
+      ---@diagnostic disable-next-line: duplicate-set-field
+      statusline.section_filename = function() return '%t%m%r' end
     end,
   },
 }

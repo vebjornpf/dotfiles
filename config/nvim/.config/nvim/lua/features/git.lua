@@ -32,8 +32,8 @@ function M.gitsigns_on_attach(bufnr)
   map('n', '<leader>hR', gs.reset_buffer, 'Reset buffer')
   map('n', '<leader>hp', gs.preview_hunk_inline, 'Preview hunk')
   map('n', '<leader>hb', function() gs.blame_line { full = true } end, 'Blame line')
-  map('n', '<leader>hd', gs.diffthis, 'Diff this')
-  map('n', '<leader>hD', function() gs.diffthis '~' end, 'Diff against index')
+  map('n', '<leader>hd', function() gs.diffthis(nil, { vertical = true }) end, 'Diff this')
+  map('n', '<leader>hD', function() gs.diffthis('~', { vertical = true }) end, 'Diff against index')
 end
 
 function M.diffview_keys()

@@ -9,6 +9,7 @@
 ## Layout
 - `init.lua`: startup entrypoint.
 - `lua/config/options.lua`: core editor options.
+- `lua/config/tabline.lua`: short tab labels for filenames and Diffview.
 - `lua/config/keymaps.lua`: base keymaps and diagnostic behavior.
 - `lua/config/autocmds.lua`: autocmds such as yank highlight and Kotlin package boilerplate.
 - `lua/config/lazy.lua`: bootstraps and configures `lazy.nvim`.
@@ -42,9 +43,11 @@
 - `<Esc>`: clear search highlight.
 - `<leader>q`: open buffer diagnostics in the location list.
 - `<leader>op`: open the current file in VS Code.
+- `<leader>pv` in a PDF buffer: open the PDF in the first available viewer (`zathura`, `sioyek`, `evince`, `okular`, or `xdg-open`).
 - `<Esc><Esc>` in terminal mode: leave terminal-insert mode.
 - `<C-h>`, `<C-j>`, `<C-k>`, `<C-l>`: move between windows.
-- The top of each window shows the current file path; `%m` marks modified files.
+- `<leader>wt`: move the current window to an existing tab, prompting for its tab number.
+- Window headers, tab labels, and the statusline show filenames instead of paths; modified files have a marker. Diffview panels and tabs show `Diffview`.
 
 ### File Browsing
 - `<leader>e`: smart `nvim-tree` toggle or focus current file in the tree.
@@ -87,6 +90,7 @@
 - `<leader>gb`: open Diffview for `main...HEAD` branch review.
 - `<leader>gD`: close Diffview.
 - `<leader>gH`: file history in Diffview.
+- Diffview compares files side by side, including merge conflicts.
 - `<leader>gy`: copy remote git link.
 - `<leader>gO`: open remote git link.
 - `<leader>hn`, `<leader>hN`: next and previous git hunk.
@@ -97,8 +101,8 @@
 - `<leader>hR`: reset buffer.
 - `<leader>hp`: preview hunk inline.
 - `<leader>hb`: blame line.
-- `<leader>hd`: diff current file.
-- `<leader>hD`: diff against index.
+- `<leader>hd`: diff current file side by side.
+- `<leader>hD`: diff against index side by side.
 
 ### Formatting And Requests
 - `<leader>f`: format the current buffer through `conform.nvim`.
@@ -147,7 +151,7 @@
 - `kulala.lua`: `kulala.nvim` for running HTTP and REST requests from `.http` or `.rest` buffers.
 - `mermaid.lua`: `mermaid.nvim` for dedicated Mermaid previews, formatting, diagnostics, and optional terminal rendering.
 - `markdown-preview.lua`: `markdown-preview.nvim` with `live-server.nvim` for full Markdown previews, including Mermaid code blocks.
-- `mini.lua`: `mini.nvim` modules currently used for `mini.ai`, `mini.surround`, and `mini.statusline`.
+- `mini.lua`: `mini.nvim` modules currently used for `mini.ai`, `mini.surround`, and `mini.statusline` (filename-only statusline).
 - `nvim-lint.lua`: `nvim-lint` for shell linting on enter, write, and insert leave.
 - `nvim-lspconfig.lua`: `nvim-lspconfig` plus Mason tooling for LSP server setup and installation.
 - `nvim-tree.lua`: `nvim-tree.lua` file explorer on the left side with git status and root syncing.
@@ -168,5 +172,5 @@
 
 ## Notes
 - `have_nerd_font` is currently `false`, so icon-heavy plugin features stay disabled.
-- Clipboard integration is configured for WSL via `clip.exe` and `powershell.exe`.
+- The default register uses the system clipboard (`unnamedplus`), so `y` copies to it and `p` pastes from it. On WSL, clipboard integration uses `clip.exe` and `powershell.exe`.
 - The file tree is `nvim-tree`; `mini.nvim` is used for text objects, surround editing, and statusline, not file browsing.

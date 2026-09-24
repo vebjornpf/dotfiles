@@ -68,6 +68,36 @@ vim.keymap.set('n', '<leader>op', function()
   vim.notify('VS Code CLI is not available on PATH', vim.log.levels.ERROR)
 end, { desc = '[O]pen file [P]review' })
 
+-- Open the current PDF in the first available desktop PDF viewer.
+local function open_pdf()
+  local file = vim.api.nvim_buf_get_name(0)
+  if file == '' then
+    vim.notify('Current buffer has no file path', vim.log.levels.WARN)
+    return
+  end
+
+  local viewers = { 'zathura', 'sioyek', 'evince', 'okular', 'xdg-open' }
+  for _, viewer in ipairs(viewers) do
+    if vim.fn.executable(viewer) == 1 then
+      local command = viewer == 'zathura' and { viewer, '--mode', 'fullscreen', file } or { viewer, file }
+      vim.fn.jobstart(command, { detach = true })
+      return
+    end
+  end
+
+  vim.notify('No PDF viewer found on PATH', vim.log.levels.ERROR)
+end
+
+vim.api.nvim_create_autocmd('BufEnter', {
+  pattern = '*.pdf',
+  callback = function(event)
+    vim.keymap.set('n', '<leader>pv', open_pdf, {
+      buffer = event.buf,
+      desc = '[P]review [V]iew PDF',
+    })
+  end,
+})
+
 -- Leave terminal-insert mode and return to normal terminal navigation.
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
@@ -79,3 +109,27 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 -- Move focus to the window above without typing the full window command.
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+vim.keymap.set('n', '<leader>wt', function()
+  local tabs = vim.api.nvim_list_tabpages()
+  if #tabs < 2 then
+    vim.notify('Only one tab is open', vim.log.levels.WARN)
+    return
+  end
+
+  local target = vim.fn.input(string.format('Move window to tab (1-%d): ', #tabs))
+  local tab_number = tonumber(target)
+  if not tab_number or tab_number < 1 or tab_number > #tabs or tab_number % 1 ~= 0 then
+    vim.notify('Invalid tab number', vim.log.levels.WARN)
+    return
+  end
+
+  local window = vim.api.nvim_get_current_win()
+  local target_tab = tabs[tab_number]
+  if target_tab == vim.api.nvim_get_current_tabpage() then
+    vim.notify('Window is already in that tab', vim.log.levels.INFO)
+    return
+  end
+
+  vim.api.nvim_win_move(window, vim.api.nvim_tabpage_get_win(target_tab))
+end, { desc = 'Move current window to another tab' })

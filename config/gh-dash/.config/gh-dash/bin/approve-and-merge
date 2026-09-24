@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo=${1:-}
+pr_number=${2:-}
+
+if [[ -z "$repo" || ! "$pr_number" =~ ^[0-9]+$ ]]; then
+  printf 'Usage: approve-and-merge <owner/repo> <pr-number>\n' >&2
+  exit 1
+fi
+
+if ! command -v gh >/dev/null 2>&1; then
+  printf 'approve-and-merge: gh is required\n' >&2
+  exit 1
+fi
+
+gh pr review "$pr_number" -R "$repo" --approve --body 'LGTM'
+gh pr merge "$pr_number" -R "$repo"

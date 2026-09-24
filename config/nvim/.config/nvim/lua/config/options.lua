@@ -3,7 +3,8 @@ vim.o.number = true
 vim.o.relativenumber = true
 vim.o.mouse = 'a'
 vim.o.showmode = false
-vim.o.winbar = '%=%f %m'
+vim.o.winbar = '%=%t %m'
+vim.o.tabline = "%!v:lua.require('config.tabline').render()"
 
 vim.o.breakindent = true
 vim.o.undofile = true
@@ -20,6 +21,7 @@ vim.o.inccommand = 'split'
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 vim.o.confirm = true
+vim.opt.clipboard = 'unnamedplus'
 
 -- WSL clipboard via Windows clip.exe
 vim.g.clipboard = {

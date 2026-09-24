@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo=${1:-}
+pr_number=${2:-}
+
+if [[ -z "$repo" || ! "$pr_number" =~ ^[0-9]+$ ]]; then
+  printf 'Usage: checkout-worktree <owner/repo> <pr-number>\n' >&2
+  exit 1
+fi
+
+for command in gh git herdr; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    printf 'checkout-worktree: %s is required\n' "$command" >&2
+    exit 1
+  fi
+done
+
+repo_matches() {
+  local path=$1
+  local remote
+
+  remote=$(git -C "$path" remote get-url origin 2>/dev/null || true)
+  remote=${remote%.git}
+  remote=${remote#git@github.com:}
+  remote=${remote#ssh://git@github.com/}
+  remote=${remote#https://github.com/}
+  remote=${remote#http://github.com/}
+  [[ "$remote" == "$repo" ]]
+}
+
+repo_name=${repo##*/}
+repo_path=
+shopt -s nullglob
+candidates=("$HOME/git/$repo_name" "$HOME/git/$repo" "$HOME/git"/*/*)
+
+for candidate in "${candidates[@]}"; do
+  if [[ -e "$candidate" ]] && git -C "$candidate" rev-parse --git-dir >/dev/null 2>&1 && repo_matches "$candidate"; then
+    repo_path=$candidate
+    break
+  fi
+done
+
+if [[ -z "$repo_path" ]]; then
+  printf 'checkout-worktree: no local clone of %s found under ~/git\n' "$repo" >&2
+  exit 1
+fi
+
+head_branch=$(gh pr view "$pr_number" --repo "$repo" --json headRefName --jq .headRefName)
+slug=$(printf '%s' "$head_branch" | tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:].-' '-' | sed 's/^-//; s/-$//')
+worktree_path="$HOME/.herdr/worktrees/$repo_name/pr-$pr_number-$slug"
+label="$repo_name#$pr_number"
+
+if [[ -e "$worktree_path" ]]; then
+  if ! git -C "$worktree_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    printf 'checkout-worktree: refusing to reuse non-worktree path %s\n' "$worktree_path" >&2
+    exit 1
+  fi
+else
+  mkdir -p "$(dirname "$worktree_path")"
+  git -C "$repo_path" fetch origin
+  (
+    cd "$repo_path"
+    gh pr checkout "$pr_number" --repo "$repo" --branch "$head_branch" --worktree "$worktree_path"
+  )
+fi
+
+herdr worktree open \
+  --cwd "$repo_path" \
+  --path "$worktree_path" \
+  --label "$label" \
+  --focus \
+  --trust-repository >/dev/null

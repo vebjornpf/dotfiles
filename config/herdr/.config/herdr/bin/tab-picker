@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+for command in fzf herdr jq; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    printf 'tab-picker: %s is required\n' "$command" >&2
+    exit 1
+  fi
+done
+
+workspace_id=${HERDR_WORKSPACE_ID:-}
+if [[ -z "$workspace_id" ]]; then
+  workspace_id=$(herdr workspace list | jq -r '.result.workspaces[] | select(.focused) | .workspace_id')
+fi
+if [[ -z "$workspace_id" ]]; then
+  printf 'tab-picker: no current workspace found\n' >&2
+  exit 1
+fi
+
+tabs=$(herdr tab list --workspace "$workspace_id")
+panes=$(herdr pane list --workspace "$workspace_id")
+entries=$(jq -rn --argjson tabs "$tabs" --argjson panes "$panes" '
+  $tabs.result.tabs[]? as $tab |
+  [$tab.tab_id,
+   ($tab.number | tostring),
+   $tab.label,
+   ([$panes.result.panes[]? | select(.tab_id == $tab.tab_id) |
+     (.terminal_title_stripped // .terminal_title // .agent // empty)] | unique | join(" · "))] |
+  map(gsub("[\\t\\r\\n]"; " ")) | join("\t")
+')
+[[ -n "$entries" ]] || exit 0
+
+selected=$(printf '%s\n' "$entries" | fzf \
+  --delimiter=$'\t' \
+  --with-nth=2.. \
+  --prompt='tabs > ' \
+  --border=rounded \
+  --border-label=' current workspace tabs ' \
+  --header='enter: focus tab | esc: cancel' \
+  --header-first \
+  --info=inline-right \
+  --no-scrollbar \
+  --cycle) || exit 0
+
+[[ -n "$selected" ]] || exit 0
+herdr tab focus "${selected%%$'\t'*}" >/dev/null
