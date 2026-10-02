@@ -49,6 +49,7 @@ alias gd='git diff'
 alias gdm='nvim -c "DiffviewOpen main...HEAD"'
 alias gds='git diff --staged'
 alias gl='git log --oneline --graph'
+alias glm='git log --oneline --decorate --graph --boundary main..HEAD'
 alias glf='git log --stat --decorate'
 alias glog='git log --oneline --decorate --graph --all'
 alias gsh='git show'
@@ -74,51 +75,11 @@ alias ghprw='gh pr create --base main --head "$(git branch --show-current)" --we
 alias ghprms='gh pr merge --squash'
 alias ghprm='gh pr merge -s -d --auto'
 alias gho='gh repo view --web'
+alias ghob='gh browse --branch "$(git branch --show-current)"'
+alias ghom='gh browse --branch main'
 
 # Worktree
 alias gwtr='git worktree remove'
-
-# Create a new Git worktree outside the current repo
-gmkw() {
-  set -e  # exit immediately if a command fails
-
-  local branch="$1"
-  local base_branch="${2:-main}"
-
-  # Ensure we are inside a git worktree (not .git/)
-  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "❌ You must run this command from inside a Git worktree (not .git/)"
-    return 1
-  fi
-
-  local repo_root
-  repo_root=$(git rev-parse --show-toplevel)
-  local repo_name
-  repo_name=$(basename "$repo_root")
-  local parent_dir
-  parent_dir=$(dirname "$repo_root")
-  local dir="${parent_dir}/${repo_name}-${branch}-wk"
-
-  if [[ -z "$branch" ]]; then
-    echo "Usage: mkworktree <branch-name> [base-branch]"
-    return 1
-  fi
-
-  echo "🚀 Creating worktree '$branch' from '$base_branch'..."
-
-  # Check if branch exists
-  if ! git rev-parse --verify "$branch" >/dev/null 2>&1; then
-    git worktree add -b "$branch" "$dir" "$base_branch"
-  else
-    git worktree add "$dir" "$branch"
-  fi
-
-  echo "✅ Worktree for '$branch' created at: $dir"
-
-  # Move into the new directory
-  cd "$dir" || return
-}
-
 
 # Clever way of switching between branhes
 gfs() {

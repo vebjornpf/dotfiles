@@ -4,6 +4,18 @@ function M.setup()
   local builtin = require 'telescope.builtin'
 
   vim.keymap.set('n', '<leader>gs', builtin.git_status, { desc = '[G]it [S]tatus' })
+  vim.keymap.set('n', '<leader>gf', function()
+    vim.fn.system({ 'git', 'rev-parse', '--verify', 'main^{commit}' })
+    if vim.v.shell_error ~= 0 then
+      vim.notify('Git main branch not found in the current repository', vim.log.levels.ERROR)
+      return
+    end
+
+    builtin.git_files {
+      prompt_title = 'Files changed from main',
+      git_command = { 'git', '-c', 'core.quotepath=false', 'diff', '--name-only', '--diff-filter=ACMRT', 'main...HEAD' },
+    }
+  end, { desc = '[G]it changed [F]iles from main' })
   vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
   vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
   vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })

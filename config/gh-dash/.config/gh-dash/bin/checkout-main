@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+source "$(dirname "$0")/../lib/repo.sh"
+
+repo=${1:-}
+pr_number=${2:-}
+
+if [[ -z "$repo" || ! "$pr_number" =~ ^[0-9]+$ ]]; then
+  printf 'Usage: checkout-main <owner/repo> <pr-number>\n' >&2
+  exit 1
+fi
+
+for command in gh git herdr jq; do
+  if ! command -v "$command" >/dev/null 2>&1; then
+    printf 'checkout-main: %s is required\n' "$command" >&2
+    exit 1
+  fi
+done
+
+repo_path=$(find_repo_clone "$repo") || exit 1
+
+if [[ -n "$(git -C "$repo_path" status --porcelain)" ]]; then
+  printf 'checkout-main: uncommitted changes in %s; clean the checkout before switching branches\n' "$repo_path" >&2
+  exit 1
+fi
+
+(
+  cd "$repo_path"
+  gh pr checkout "$pr_number" --repo "$repo"
+)
+
+workspace_label=${repo_path##*/}
+if [[ "$repo_path" == "$HOME/git/fyk/"* ]]; then
+  workspace_label="fyk/$workspace_label"
+fi
+
+workspace_id=$(herdr workspace list | jq -r --arg path "$repo_path" --arg label "$workspace_label" '
+  .result.workspaces as $workspaces |
+  ([ $workspaces[]? | select(.worktree.checkout_path == $path) | .workspace_id ] | first) //
+  ([ $workspaces[]? | select(.worktree == null and .label == $label) | .workspace_id ] | first) // empty
+')
+
+if [[ -n "$workspace_id" ]]; then
+  herdr workspace focus "$workspace_id" >/dev/null
+else
+  herdr workspace create --cwd "$repo_path" --label "$workspace_label" --focus >/dev/null
+fi

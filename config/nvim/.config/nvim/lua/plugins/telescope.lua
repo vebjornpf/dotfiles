@@ -17,6 +17,12 @@ return {
       require('telescope').setup {
         defaults = {
           path_display = { 'filename_first' },
+          mappings = {
+            n = {
+              ['gh'] = require('telescope.actions').select_horizontal,
+              ['gv'] = require('telescope.actions').select_vertical,
+            },
+          },
           layout_strategy = 'horizontal',
           layout_config = {
             width = 0.95,

@@ -58,3 +58,6 @@ height = "60%"
 [ui]
 agent_panel_sort = "spaces"
 window_title = "{workspace}"
+
+[experimental]
+kitty_graphics = true

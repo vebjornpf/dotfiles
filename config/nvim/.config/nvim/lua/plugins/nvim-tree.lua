@@ -18,14 +18,16 @@ return {
         map('i', api.node.open.vertical, 'Open: Vertical Split')
         map('s', api.node.open.horizontal, 'Open: Horizontal Split')
         map('t', api.node.open.tab, 'Open: New Tab')
+        map('gh', api.node.open.horizontal, 'Open: Horizontal Split')
+        map('gv', api.node.open.vertical, 'Open: Vertical Split')
       end,
       git = {
         enable = true,
         ignore = false,
       },
       view = {
-        side = 'left',
-        width = 32,
+        side = 'right',
+        width = { min = 50 },
       },
       renderer = {
         group_empty = true,

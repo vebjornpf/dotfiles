@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+config="${GH_DASH_HOME:-$HOME/.config/gh-dash}/config.yml"
+
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
+  ! repo=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null); then
+  gh dash
+  exit
+fi
+
+temporary_config=$(mktemp "${TMPDIR:-/tmp}/gh-dash.XXXXXXXX.yml")
+trap 'rm -f "$temporary_config"' EXIT
+
+{
+  printf 'prSections:\n    - title: Open PRs in %s\n      filters: repo:%s is:open\n' "$repo" "$repo"
+
+  replacing=0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" == prSections: ]]; then
+      replacing=1
+      continue
+    fi
+    if [[ "$line" == [![:space:]#]* ]]; then
+      replacing=0
+    fi
+    if (( ! replacing )); then
+      printf '%s\n' "$line"
+    fi
+  done < "$config"
+} > "$temporary_config"
+
+gh dash --config "$temporary_config"

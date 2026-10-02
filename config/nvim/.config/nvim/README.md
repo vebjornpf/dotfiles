@@ -53,8 +53,11 @@
 - `<leader>e`: smart `nvim-tree` toggle or focus current file in the tree.
 - `<leader>fe`: reveal the current file in `nvim-tree`.
 - In `nvim-tree`: `i` opens a file in a vertical split, `s` in a horizontal split, and `t` in a new tab.
+- In `nvim-tree`: `gh` opens a horizontal split, `gv` opens a vertical split; `<C-x>`, `<C-v>`, and `<C-t>` open a horizontal split, vertical split, and new tab.
 
 ### Search And Picking
+- In Telescope file pickers, `<CR>` opens the selected file in the current window; `<C-t>` opens it in a new tab (`<C-v>` in a vertical split, `<C-x>` in a horizontal split).
+- In Telescope normal mode (`<Esc>` from the search prompt), `gh` opens a horizontal split and `gv` opens a vertical split.
 - `<leader>sf`: find files.
 - `<leader>sF`: find all files, including hidden and ignored.
 - `<leader>st`: find files under `./tmp`.
@@ -86,8 +89,9 @@
 
 ### Git
 - `<leader>gs`: Telescope git status.
-- `<leader>gd`: open Diffview for current local changes.
-- `<leader>gb`: open Diffview for `main...HEAD` branch review.
+- `<leader>gf`: Telescope files changed in `main...HEAD` (branch commits; deleted files excluded). Open a result with `<CR>`, `<C-t>`, `<C-v>`, or `<C-x>`.
+- `<leader>gd`: open Diffview for uncommitted changes (staged and unstaged) in the working tree.
+- `<leader>gb`: open Diffview for branch commits since diverging from `main` (`main...HEAD`); excludes uncommitted changes.
 - `<leader>gD`: close Diffview.
 - `<leader>gH`: file history in Diffview.
 - Diffview compares files side by side, including merge conflicts.
@@ -154,7 +158,7 @@
 - `mini.lua`: `mini.nvim` modules currently used for `mini.ai`, `mini.surround`, and `mini.statusline` (filename-only statusline).
 - `nvim-lint.lua`: `nvim-lint` for shell linting on enter, write, and insert leave.
 - `nvim-lspconfig.lua`: `nvim-lspconfig` plus Mason tooling for LSP server setup and installation.
-- `nvim-tree.lua`: `nvim-tree.lua` file explorer on the left side with git status and root syncing.
+- `nvim-tree.lua`: `nvim-tree.lua` file explorer on the right with git status, root syncing, and a minimum width of 50 columns that grows to fit visible entries.
 - `telescope.lua`: `telescope.nvim` plus FZF and UI-select extensions for file, grep, buffer, and LSP pickers.
 - `todo-comments.lua`: `todo-comments.nvim` for highlighting and navigating TODO-style comments.
 - `tokyonight.lua`: `tokyonight.nvim` colorscheme setup using `tokyonight-night`.

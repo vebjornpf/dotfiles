@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+source "$(dirname "$0")/../lib/repo.sh"
 
 repo=${1:-}
 pr_number=${2:-}
@@ -17,40 +18,13 @@ for command in gh git herdr; do
   fi
 done
 
-repo_matches() {
-  local path=$1
-  local remote
-
-  remote=$(git -C "$path" remote get-url origin 2>/dev/null || true)
-  remote=${remote%.git}
-  remote=${remote#git@github.com:}
-  remote=${remote#ssh://git@github.com/}
-  remote=${remote#https://github.com/}
-  remote=${remote#http://github.com/}
-  [[ "$remote" == "$repo" ]]
-}
-
 repo_name=${repo##*/}
-repo_path=
-shopt -s nullglob
-candidates=("$HOME/git/$repo_name" "$HOME/git/$repo" "$HOME/git"/*/*)
-
-for candidate in "${candidates[@]}"; do
-  if [[ -e "$candidate" ]] && git -C "$candidate" rev-parse --git-dir >/dev/null 2>&1 && repo_matches "$candidate"; then
-    repo_path=$candidate
-    break
-  fi
-done
-
-if [[ -z "$repo_path" ]]; then
-  printf 'checkout-worktree: no local clone of %s found under ~/git\n' "$repo" >&2
-  exit 1
-fi
+repo_path=$(find_repo_clone "$repo") || exit 1
 
 head_branch=$(gh pr view "$pr_number" --repo "$repo" --json headRefName --jq .headRefName)
 slug=$(printf '%s' "$head_branch" | tr '[:upper:]' '[:lower:]' | tr -cs '[:alnum:].-' '-' | sed 's/^-//; s/-$//')
 worktree_path="$HOME/.herdr/worktrees/$repo_name/pr-$pr_number-$slug"
-label="$repo_name#$pr_number"
+label="#$pr_number"
 
 if [[ -e "$worktree_path" ]]; then
   if ! git -C "$worktree_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then

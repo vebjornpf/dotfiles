@@ -83,6 +83,9 @@ defaults:
     refetchIntervalMinutes: 30
 keybindings:
     prs:
+        - key: c
+          name: Checkout PR in main clone
+          command: ~/.config/gh-dash/bin/checkout-main {{.RepoName}} {{.PrNumber}}
         - key: C
           name: Checkout PR in Herdr worktree
           command: ~/.config/gh-dash/bin/checkout-worktree {{.RepoName}} {{.PrNumber}}
