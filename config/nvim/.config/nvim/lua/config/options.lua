@@ -23,13 +23,30 @@ vim.o.scrolloff = 10
 vim.o.confirm = true
 vim.opt.clipboard = 'unnamedplus'
 
--- WSL clipboard via Windows clip.exe
-vim.g.clipboard = {
-  name = "win32clipboard",
-  copy  = { ["+"] = "clip.exe", ["*"] = "clip.exe" },
-  paste = {
-    ["+"] = { "powershell.exe", "-noprofile", "-command", "Get-Clipboard" },
-    ["*"] = { "powershell.exe", "-noprofile", "-command", "Get-Clipboard" },
-  },
-  cache_enabled = 0,
-}
+if vim.fn.has('wsl') == 1 and vim.fn.executable('win32yank.exe') == 1 then
+  vim.g.clipboard = {
+    name = 'win32yank',
+    copy = {
+      ['+'] = { 'win32yank.exe', '-i', '--crlf' },
+      ['*'] = { 'win32yank.exe', '-i', '--crlf' },
+    },
+    paste = {
+      ['+'] = { 'win32yank.exe', '-o', '--lf' },
+      ['*'] = { 'win32yank.exe', '-o', '--lf' },
+    },
+    cache_enabled = 0,
+  }
+elseif vim.fn.has('mac') == 1 then
+  vim.g.clipboard = {
+    name = 'macOS clipboard',
+    copy = {
+      ['+'] = { 'pbcopy' },
+      ['*'] = { 'pbcopy' },
+    },
+    paste = {
+      ['+'] = { 'pbpaste' },
+      ['*'] = { 'pbpaste' },
+    },
+    cache_enabled = 0,
+  }
+end
