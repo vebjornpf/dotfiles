@@ -51,22 +51,8 @@ vim.diagnostic.config {
 -- Open buffer diagnostics in the location list so problems are easy to scan and jump through.
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
--- Open the current file in VS Code. This is a practical preview path for
--- generated PNGs when terminal-native image rendering is not available.
-vim.keymap.set('n', '<leader>op', function()
-  local file = vim.api.nvim_buf_get_name(0)
-  if file == '' then
-    vim.notify('Current buffer has no file path', vim.log.levels.WARN)
-    return
-  end
-
-  if vim.fn.executable 'code' == 1 then
-    vim.fn.jobstart({ 'code', '--reuse-window', file }, { detach = true })
-    return
-  end
-
-  vim.notify('VS Code CLI is not available on PATH', vim.log.levels.ERROR)
-end, { desc = '[O]pen file [P]review' })
+-- Open the current file using the platform's system association.
+vim.keymap.set('n', '<leader>op', require('config.file_handlers').current_file, { desc = '[O]pen file [P]review' })
 
 -- Open the current PDF in the first available desktop PDF viewer.
 local function open_pdf()

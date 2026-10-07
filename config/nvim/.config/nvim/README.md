@@ -42,7 +42,7 @@
 ### Core
 - `<Esc>`: clear search highlight.
 - `<leader>q`: open buffer diagnostics in the location list.
-- `<leader>op`: open the current file in VS Code.
+- `<leader>op`: open the current file in Firefox (Windows Firefox from WSL), with `xdg-open`, macOS `open`, and WSL Windows Explorer as fallbacks. PDF `<leader>pv` remains the dedicated Zathura/viewer shortcut.
 - `<leader>pv` in a PDF buffer: open the PDF in the first available viewer (`zathura`, `sioyek`, `evince`, `okular`, or `xdg-open`).
 - `<Esc><Esc>` in terminal mode: leave terminal-insert mode.
 - `<C-h>`, `<C-j>`, `<C-k>`, `<C-l>`: move between windows.
@@ -54,6 +54,7 @@
 - `<leader>fe`: reveal the current file in `nvim-tree`.
 - In `nvim-tree`: `i` opens a file in a vertical split, `s` in a horizontal split, and `t` in a new tab.
 - In `nvim-tree`: `gh` opens a horizontal split, `gv` opens a vertical split; `<C-x>`, `<C-v>`, and `<C-t>` open a horizontal split, vertical split, and new tab.
+- In `nvim-tree`: `O` opens the selected file with the platform system association.
 
 ### Search And Picking
 - In Telescope file pickers, `<CR>` opens the selected file in the current window; `<C-t>` opens it in a new tab (`<C-v>` in a vertical split, `<C-x>` in a horizontal split).
@@ -168,6 +169,7 @@
 ## Where To Change Things
 - Change editor defaults in `lua/config/options.lua`.
 - Change global keymaps in `lua/config/keymaps.lua`.
+- Change external file-opening policy and platform handling in `lua/config/file_handlers.lua`.
 - Change autocmds in `lua/config/autocmds.lua`.
 - Change Telescope behavior or search mappings in `lua/plugins/telescope.lua` and `lua/features/search.lua`.
 - Change tree behavior in `lua/plugins/nvim-tree.lua` and `lua/features/ui.lua`.

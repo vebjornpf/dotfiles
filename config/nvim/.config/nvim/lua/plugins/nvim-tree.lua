@@ -18,9 +18,13 @@ return {
         map('i', api.node.open.vertical, 'Open: Vertical Split')
         map('s', api.node.open.horizontal, 'Open: Horizontal Split')
         map('t', api.node.open.tab, 'Open: New Tab')
-        map('gh', api.node.open.horizontal, 'Open: Horizontal Split')
-        map('gv', api.node.open.vertical, 'Open: Vertical Split')
-      end,
+         map('gh', api.node.open.horizontal, 'Open: Horizontal Split')
+         map('gv', api.node.open.vertical, 'Open: Vertical Split')
+         map('O', function()
+           local node = api.tree.get_node_under_cursor()
+           if node and node.absolute_path then require('config.file_handlers').open(node.absolute_path) end
+         end, 'Open externally')
+       end,
       git = {
         enable = true,
         ignore = false,
