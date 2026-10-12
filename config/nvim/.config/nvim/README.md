@@ -27,13 +27,14 @@
 ## Startup Flow
 1. `init.lua` sets leader keys and `have_nerd_font`.
 2. Core options, keymaps, and autocmds load from `lua/config/`.
-3. `require('features').setup()` loads repo behavior, currently UI helpers.
+3. `require('features').setup()` loads repo behavior, including UI helpers and personal shortcuts access.
 4. `lua/config/lazy.lua` bootstraps `lazy.nvim` and imports all files under `lua/plugins/`.
 5. Plugins load on startup, events, commands, filetypes, or keys depending on each spec.
 
 ## Features
 - UI: `features/ui.lua` adds the smart `nvim-tree` toggle and which-key group labels.
 - Search: `features/search.lua` defines Telescope pickers for files, grep, buffers, commands, and Neovim config files.
+- Personal shortcuts: `features/shortcuts.lua` opens `neovim.md` and searches Markdown files under `~/.config/shortcuts/`, managed by the `shortcuts` Stow package. Opening notes keeps the file tree rooted in your project.
 - LSP: `features/lsp.lua` adds buffer-local LSP actions, Telescope-powered symbol/navigation pickers, and inlay-hint toggling.
 - Git: `features/git.lua` wires gitsigns hunk actions and diffview shortcuts.
 
@@ -55,15 +56,22 @@
 - In `nvim-tree`: `i` opens a file in a vertical split, `s` in a horizontal split, and `t` in a new tab.
 - In `nvim-tree`: `gh` opens a horizontal split, `gv` opens a vertical split; `<C-x>`, `<C-v>`, and `<C-t>` open a horizontal split, vertical split, and new tab.
 - In `nvim-tree`: `O` opens the selected file with the platform system association.
+- In `nvim-tree`: `E` expands folders, `f` starts a filename filter, and `F` clears it. While filtering, folders without a matching name or loaded matching descendants are hidden.
+
+### Personal Shortcuts
+- `<leader>oc`: open personal Neovim notes (`shortcuts/neovim.md`).
+- `<leader>os`: search text across all shortcut Markdown files with Telescope.
+- Notes are ordinary editable Markdown files; save with `:w`. Currently only `neovim.md` is included.
 
 ### Search And Picking
 - In Telescope file pickers, `<CR>` opens the selected file in the current window; `<C-t>` opens it in a new tab (`<C-v>` in a vertical split, `<C-x>` in a horizontal split).
 - In Telescope normal mode (`<Esc>` from the search prompt), `gh` opens a horizontal split and `gv` opens a vertical split.
-- `<leader>sf`: find files.
+- `<leader>sf`: find files including hidden files, respecting ignore rules and excluding `.git/`.
 - `<leader>sF`: find all files, including hidden and ignored.
 - `<leader>st`: find files under `./tmp`.
-- `<leader>sg`: live grep.
-- `<leader>sG`: live grep including hidden files.
+- `<leader>sg`: live grep including hidden files, respecting ignore rules and excluding `.git/`.
+- `<leader>sG`: live grep including hidden files, respecting ignore rules without the explicit `.git/` exclusion.
+- Hidden files such as `.env` are included unless ignored; build output is excluded when covered by ignore rules.
 - `<leader>sT`: live grep under `./tmp`.
 - `<leader>sw`: grep the current word or selection.
 - `<leader>ss`: list Telescope pickers.
@@ -117,6 +125,8 @@
 - `<leader>Rb`: open Kulala scratchpad.
 
 ### Markdown Preview
+- Markdown files render directly in Neovim with highlighted headings, bullets, and code blocks. The cursor line reveals its source for editing; insert mode shows raw Markdown.
+- `:RenderMarkdown toggle`: toggle in-editor rendering. `:RenderMarkdown preview`: open a rendered view alongside the editable buffer.
 - Markdown completion includes words from the current visible buffer.
 - Markdown buffers enable English spell checking automatically.
 - `]s` / `[s`: move to the next or previous misspelling.
@@ -165,6 +175,7 @@
 - `nvim-lint.lua`: `nvim-lint` for shell linting on enter, write, and insert leave.
 - `nvim-lspconfig.lua`: `nvim-lspconfig` plus Mason tooling for LSP server setup and installation.
 - `nvim-tree.lua`: `nvim-tree.lua` file explorer on the right with git status, root syncing, and a minimum width of 50 columns that grows to fit visible entries.
+- `render-markdown.lua`: `render-markdown.nvim` for readable Markdown inside Neovim, using plain heading markers and no Nerd Font-dependent code or link icons.
 - `telescope.lua`: `telescope.nvim` plus FZF and UI-select extensions for file, grep, buffer, and LSP pickers.
 - `todo-comments.lua`: `todo-comments.nvim` for highlighting and navigating TODO-style comments.
 - `tokyonight.lua`: `tokyonight.nvim` colorscheme setup using `tokyonight-night`.
@@ -180,6 +191,7 @@
 - Change tree behavior in `lua/plugins/nvim-tree.lua` and `lua/features/ui.lua`.
 - Change LSP server setup in `lua/plugins/nvim-lspconfig.lua` and LSP mappings in `lua/features/lsp.lua`.
 - Change git keymaps in `lua/features/git.lua`.
+- Change personal shortcut access in `lua/features/shortcuts.lua`; edit the notes in `~/.config/shortcuts/`.
 
 ## Notes
 - `have_nerd_font` is currently `false`, so icon-heavy plugin features stay disabled.

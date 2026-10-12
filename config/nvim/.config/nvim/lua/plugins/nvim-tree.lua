@@ -1,3 +1,5 @@
+local shortcuts_dir = vim.fn.expand '~/.config/shortcuts'
+
 return {
   {
     'nvim-tree/nvim-tree.lua',
@@ -43,12 +45,21 @@ return {
       },
       update_focused_file = {
         enable = true,
-        update_root = true,
+        update_root = {
+          enable = true,
+          ignore_list = {
+            shortcuts_dir .. '/',
+            (vim.uv.fs_realpath(shortcuts_dir) or shortcuts_dir) .. '/',
+          },
+        },
       },
       sync_root_with_cwd = true,
       respect_buf_cwd = true,
       filters = {
         dotfiles = false,
+      },
+      live_filter = {
+        always_show_folders = false,
       },
     },
   },

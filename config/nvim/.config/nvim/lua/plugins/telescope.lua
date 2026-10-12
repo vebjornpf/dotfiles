@@ -38,6 +38,7 @@ return {
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
       require('features.search').setup()
+      require('features.shortcuts').setup_telescope()
       require('features.lsp').setup_telescope()
     end,
   },

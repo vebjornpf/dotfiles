@@ -70,6 +70,176 @@ _wt_create() {
     --path "$target" --label "$name" --focus --trust-repository
 }
 
+_wt_require_open() {
+  local dependency
+  if [[ ${HERDR_ENV:-} != 1 ]]; then
+    print -u2 'wt: run branch and pr inside Herdr'
+    return 1
+  fi
+  for dependency in git herdr "$@"; do
+    if ! command -v "$dependency" >/dev/null 2>&1; then
+      print -u2 -- "wt: $dependency is required"
+      return 1
+    fi
+  done
+}
+
+# Find any existing checkout of a branch, including the main checkout.
+_wt_branch_path() {
+  local source=$1 branch=$2 field checkout
+  while IFS= read -r -d '' field; do
+    case $field in
+      'worktree '*) checkout=${field#worktree } ;;
+      "branch refs/heads/$branch") print -r -- "$checkout"; return ;;
+    esac
+  done < <(git -C "$source" worktree list --porcelain -z)
+}
+
+_wt_slug() {
+  local slug
+  slug=$(print -rn -- "$1" | LC_ALL=C tr -cs '[:alnum:].-' '-') || return
+  slug=${slug##-}
+  slug=${slug%%-}
+  [[ -n $slug && $slug != . && $slug != .. ]] || slug=branch
+  print -r -- "$slug"
+}
+
+_wt_open_workspace() {
+  local source=$1 target=$2 label=$3 source_common target_common
+  source_common=$(git -C "$source" rev-parse --path-format=absolute --git-common-dir) || return
+  target_common=$(git -C "$target" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return
+  if [[ $source_common != $target_common || $(git -C "$target" rev-parse --show-toplevel) != "$target" ]]; then
+    print -u2 -- "wt: not a worktree of the current repository: $target"
+    return 1
+  fi
+  herdr worktree open --cwd "$source" --path "$target" \
+    --label "$label" --focus --trust-repository >/dev/null
+}
+
+_wt_branch_rows() {
+  local refs ref symbolic
+  refs=$(git for-each-ref --sort=refname --format='%(refname)%09%(symref)' refs/heads refs/remotes) || return
+  while IFS=$'\t' read -r ref symbolic; do
+    [[ -n $ref && -z $symbolic ]] || continue
+    case $ref in
+      refs/heads/*) print -r -- $'local\t'"${ref#refs/heads/}" ;;
+      refs/remotes/*) print -r -- $'remote\t'"${ref#refs/remotes/}" ;;
+    esac
+  done <<< "$refs"
+}
+
+_wt_branch() {
+  _wt_require_open || return
+  local source common_dir rows selected kind branch remote_ref target slug existing upstream
+  source=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    print -u2 'wt: run branch inside a Git checkout'
+    return 1
+  }
+  common_dir=$(git rev-parse --path-format=absolute --git-common-dir) || return
+  if (( $# )); then
+    branch=$1
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      kind=local
+    elif git show-ref --verify --quiet "refs/remotes/$branch" &&
+        ! git symbolic-ref -q "refs/remotes/$branch" >/dev/null; then
+      kind=remote
+    else
+      print -u2 -- "wt: branch not found: $branch"
+      return 1
+    fi
+  else
+    _wt_require_open fzf || return
+    rows=$(_wt_branch_rows) || return
+    if [[ -z $rows ]]; then
+      print -u2 'wt: no branches found'
+      return 1
+    fi
+    selected=$(print -r -- "$rows" | fzf --no-sort --delimiter=$'\t' --prompt='Branch> ') || return
+    [[ -n $selected ]] || return 1
+    kind=${selected%%$'\t'*}
+    branch=${selected#*$'\t'}
+  fi
+  if [[ $kind == remote ]]; then
+    remote_ref=$branch
+    branch=${remote_ref#*/}
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+      upstream=$(git for-each-ref --format='%(upstream)' "refs/heads/$branch") || return
+      if [[ $upstream != "refs/remotes/$remote_ref" ]]; then
+        print -u2 -- "wt: local branch $branch already exists and does not track $remote_ref"
+        return 1
+      fi
+    fi
+  fi
+  existing=$(_wt_branch_path "$source" "$branch") || return
+  if [[ -n $existing ]]; then
+    _wt_open_workspace "$source" "$existing" "$branch"
+    return
+  fi
+  slug=$(_wt_slug "$branch") || return
+  target="$HOME/.herdr/worktrees/${common_dir:h:t}/$slug"
+  if [[ -e $target || -L $target ]]; then
+    print -u2 -- "wt: path already exists: $target"
+    return 1
+  fi
+  mkdir -p -- "${target:h}" || return
+  if [[ $kind == remote ]] && ! git show-ref --verify --quiet "refs/heads/$branch"; then
+    git -C "$source" worktree add --track -b "$branch" -- "$target" "$remote_ref" || return
+  else
+    git -C "$source" worktree add -- "$target" "$branch" || return
+  fi
+  _wt_open_workspace "$source" "$target" "$branch"
+}
+
+_wt_pr_rows() {
+  local prs
+  prs=$(gh pr list --state open --limit 200 --json number,title,author,headRefName) || return
+  print -r -- "$prs" | jq -r '.[] | [.number, .headRefName, .title, .author.login] | @tsv'
+}
+
+_wt_pr() {
+  _wt_require_open gh || return
+  local source common_dir rows selected number head_branch branch slug target existing
+  source=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    print -u2 'wt: run pr inside a Git checkout'
+    return 1
+  }
+  common_dir=$(git rev-parse --path-format=absolute --git-common-dir) || return
+  if (( $# )); then
+    number=$1
+    if [[ $number != <-> || $number == 0 ]]; then
+      print -u2 'wt: PR number must be a positive integer'
+      return 1
+    fi
+    head_branch=$(gh pr view "$number" --json headRefName --jq .headRefName) || return
+  else
+    _wt_require_open fzf jq || return
+    rows=$(_wt_pr_rows) || return
+    if [[ -z $rows ]]; then
+      print -u2 'wt: no open pull requests found'
+      return 1
+    fi
+    selected=$(print -r -- "$rows" | fzf --delimiter=$'\t' --with-nth=1,3,4,2 --prompt='PR> ') || return
+    [[ -n $selected ]] || return 1
+    number=${selected%%$'\t'*}
+    head_branch=${${selected#*$'\t'}%%$'\t'*}
+  fi
+  branch="pr-$number"
+  slug=$(_wt_slug "${(L)head_branch}") || return
+  target="$HOME/.herdr/worktrees/${common_dir:h:t}/pr-$number-$slug"
+  if [[ -e $target || -L $target ]]; then
+    _wt_open_workspace "$source" "$target" "#$number"
+    return
+  fi
+  existing=$(_wt_branch_path "$source" "$branch") || return
+  if [[ -n $existing ]]; then
+    _wt_open_workspace "$source" "$existing" "#$number"
+    return
+  fi
+  mkdir -p -- "${target:h}" || return
+  gh pr checkout "$number" --branch "$branch" --worktree "$target" || return
+  _wt_open_workspace "$source" "$target" "#$number"
+}
+
 _wt_pick() {
   local root="$HOME/.herdr/worktrees"
   local checkout selected
@@ -170,10 +340,17 @@ wt() {
   case $1 in
     ''|list)
       if (( $# > 1 )); then
-        print -u2 'Usage: wt [list | cd | create <name> | remove]'
+        print -u2 'Usage: wt [list | branch | pr | cd <worktree-path> | create <name> | remove [worktree-path]]'
         return 1
       fi
       _wt_list
+      ;;
+    branch|pr)
+      if (( $# > 2 )); then
+        print -u2 -- "Usage: wt $1 [branch-or-pr-number]"
+        return 1
+      fi
+      "_wt_$1" "${@:2}"
       ;;
     cd)
       if (( $# != 2 )); then
@@ -197,7 +374,7 @@ wt() {
       _wt_remove "${@:2}"
       ;;
     *)
-      print -u2 'Usage: wt [list | cd | create <name> | remove]'
+      print -u2 'Usage: wt [list | branch | pr | cd <worktree-path> | create <name> | remove [worktree-path]]'
       return 1
       ;;
   esac
@@ -208,6 +385,8 @@ _wt() {
     2)
       local -a commands=(
         'list:show Herdr worktrees'
+        'branch:pick a local or remote branch to open in Herdr'
+        'pr:pick an open pull request to open in Herdr'
         'cd:open a Herdr worktree workspace'
         'create:create a worktree from the current branch'
         'remove:remove a clean Herdr worktree'
@@ -216,6 +395,23 @@ _wt() {
       ;;
     3)
       case ${words[2]} in
+        branch)
+          local kind branch
+          local -a branches
+          while IFS=$'\t' read -r kind branch; do
+            branch=${branch//:/\\:}
+            branches+=("$branch:$kind")
+          done < <(_wt_branch_rows 2>/dev/null)
+          _describe -V 'branch (local first)' branches
+          ;;
+        pr)
+          local number branch title author
+          local -a prs
+          while IFS=$'\t' read -r number branch title author; do
+            prs+=("$number:$title ($author, $branch)")
+          done < <(_wt_pr_rows 2>/dev/null)
+          _describe 'pull request' prs
+          ;;
         create) _message 'new branch/worktree name' ;;
         cd|remove)
           local root="$HOME/.herdr/worktrees"
