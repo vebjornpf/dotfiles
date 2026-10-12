@@ -36,6 +36,19 @@ if vim.fn.has('wsl') == 1 and vim.fn.executable('win32yank.exe') == 1 then
     },
     cache_enabled = 0,
   }
+elseif vim.fn.has('wsl') == 1 and vim.fn.executable('clip.exe') == 1 then
+  vim.g.clipboard = {
+    name = 'Windows clipboard',
+    copy = {
+      ['+'] = { 'clip.exe' },
+      ['*'] = { 'clip.exe' },
+    },
+    paste = {
+      ['+'] = { 'powershell.exe', '-NoProfile', '-Command', '[Console]::Write((Get-Clipboard -Raw).Replace("`r`n", "`n"))' },
+      ['*'] = { 'powershell.exe', '-NoProfile', '-Command', '[Console]::Write((Get-Clipboard -Raw).Replace("`r`n", "`n"))' },
+    },
+    cache_enabled = 0,
+  }
 elseif vim.fn.has('mac') == 1 then
   vim.g.clipboard = {
     name = 'macOS clipboard',

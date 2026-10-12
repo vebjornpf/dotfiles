@@ -21,6 +21,10 @@ fi
 
 clone_path="$(repo_clone_path "$repo_full")"
 
+if [[ -z "$branch_name" ]]; then
+  branch_name="$(gh pr view "$pr_number" --repo "$repo_full" --json headRefName -q .headRefName)"
+fi
+
 case "$branch_name" in
   ""|null|not_available)
     local_branch="pr-$pr_number"

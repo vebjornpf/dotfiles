@@ -29,9 +29,10 @@ return {
       default_format_opts = {
         lsp_format = 'fallback',
       },
-      formatters_by_ft = {
-         bash = { 'shfmt' },
-         kotlin = { 'ktlint' },
+       formatters_by_ft = {
+          bash = { 'shfmt' },
+          json = { 'jq' },
+          kotlin = { 'ktlint' },
          sh = { 'shfmt' },
          -- rust = { 'rustfmt' },
          -- python = { 'isort', 'black' },

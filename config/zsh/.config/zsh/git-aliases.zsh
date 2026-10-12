@@ -34,7 +34,7 @@ alias grbc='git rebase --continue'
 
 # Branch/Checkout
 alias gb='git branch'
-alias gbv='git branch -vv'
+alias gbv="git for-each-ref --format='%(refname:short) -> %(upstream:short)' refs/heads/"
 alias gco='git checkout'
 alias gcob='git checkout -b'
 alias gcom='git checkout main'

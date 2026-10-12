@@ -37,6 +37,9 @@ return {
       },
       sources = {
         default = { 'lsp', 'path', 'snippets' },
+        per_filetype = {
+          markdown = { 'lsp', 'path', 'snippets', 'buffer' },
+        },
       },
       snippets = { preset = 'luasnip' },
       fuzzy = { implementation = 'lua' },

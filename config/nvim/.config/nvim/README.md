@@ -111,11 +111,16 @@
 
 ### Formatting And Requests
 - `<leader>f`: format the current buffer through `conform.nvim`.
+- JSON buffers use the system `jq` formatter; Kotlin and shell buffers use `ktlint` and `shfmt`.
 - `<leader>Rs`: send HTTP request in `kulala.nvim`.
 - `<leader>Ra`: send all requests in the file.
 - `<leader>Rb`: open Kulala scratchpad.
 
 ### Markdown Preview
+- Markdown completion includes words from the current visible buffer.
+- Markdown buffers enable English spell checking automatically.
+- `]s` / `[s`: move to the next or previous misspelling.
+- `z=`: suggest corrections for the word under the cursor.
 - `<leader>mps`: start Markdown preview.
 - `<leader>mpr`: refresh Markdown preview.
 - `<leader>mpS`: stop Markdown preview.
@@ -147,7 +152,7 @@
 - The help entries are registered for visual mode (`x`), which includes visual-block mode.
 
 ## Plugins
-- `blink-cmp.lua`: `blink.cmp` completion UI with `LuaSnip` snippets and LSP/path/snippet sources.
+- `blink-cmp.lua`: `blink.cmp` completion UI with `LuaSnip` snippets and LSP/path/snippet sources, plus buffer word completion in Markdown.
 - `conform.lua`: `conform.nvim` formatter runner with `<leader>f` and formatters for shell and Kotlin files.
 - `diffview.lua`: `diffview.nvim` git diff and file history views.
 - `gitlinker.lua`: `gitlinker.nvim` for copying or opening remote git links from normal or visual mode.
