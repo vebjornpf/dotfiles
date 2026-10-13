@@ -37,6 +37,7 @@
 - Personal shortcuts: `features/shortcuts.lua` opens `neovim.md` and searches Markdown files under `~/.config/shortcuts/`, managed by the `shortcuts` Stow package. Opening notes keeps the file tree rooted in your project.
 - LSP: `features/lsp.lua` adds buffer-local LSP actions, Telescope-powered symbol/navigation pickers, and inlay-hint toggling.
 - Git: `features/git.lua` wires gitsigns hunk actions and diffview shortcuts.
+- File paths: `features/file_paths.lua` adds commands to copy the current filename or path to the system clipboard.
 
 ## Main Shortcuts
 
@@ -57,6 +58,13 @@
 - In `nvim-tree`: `gh` opens a horizontal split, `gv` opens a vertical split; `<C-x>`, `<C-v>`, and `<C-t>` open a horizontal split, vertical split, and new tab.
 - In `nvim-tree`: `O` opens the selected file with the platform system association.
 - In `nvim-tree`: `E` expands folders, `f` starts a filename filter, and `F` clears it. While filtering, folders without a matching name or loaded matching descendants are hidden.
+
+### Copy File Paths
+- `:CopyFileName`: copy the current filename, including its extension.
+- `:CopyRelativePath`: copy the path relative to the current file's Git repository root; outside Git, use the working directory as the base.
+- `:CopyAbsolutePath`: copy the full absolute path of the current file.
+- These commands use the system clipboard and require a named, regular file buffer (including new, unsaved files).
+- In `nvim-tree`, use `y` for the selected filename, `Y` for the path relative to the tree root, and `gy` for the absolute path.
 
 ### Personal Shortcuts
 - `<leader>oc`: open personal Neovim notes (`shortcuts/neovim.md`).

@@ -7,6 +7,15 @@
 
 ## Commands
 
+### Copy the current filename or path
+
+- `:CopyFileName`: copy just the filename, such as `neovim.md`.
+- `:CopyRelativePath`: copy the path from the file's Git repository root, such as `config/shortcuts/.config/shortcuts/neovim.md`.
+- `:CopyAbsolutePath`: copy the full path, such as `/home/user/project/neovim.md`.
+
+These commands copy to the system clipboard from the current file buffer.
+Outside a Git repository, `:CopyRelativePath` uses Neovim's working directory (`:pwd`) as the base.
+
 ### Copy the current file to a new location
 
 ```vim
@@ -92,5 +101,11 @@ Select the destination folder and press `a`. In the path prompt:
 
 Keep the destination path shown in the prompt and append your new name, then press Enter.
 If a file is selected, the new item is created in that file's containing folder.
+
+### Copy the selected filename or path
+
+- `y`: copy the filename.
+- `Y`: copy the path relative to the tree root.
+- `gy`: copy the absolute path.
 
 Press `g?` in the tree to see all available shortcuts.
