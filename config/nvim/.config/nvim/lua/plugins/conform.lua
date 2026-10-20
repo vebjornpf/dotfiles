@@ -14,14 +14,17 @@ return {
     ---@module 'conform'
     ---@type conform.setupOpts
     opts = {
-      notify_on_error = false,
+      notify_on_error = true,
       format_on_save = function(bufnr)
         local enabled_filetypes = {
+          json = true,
+          kotlin = true,
           -- lua = true,
           -- python = true,
         }
         if enabled_filetypes[vim.bo[bufnr].filetype] then
-          return { timeout_ms = 500 }
+          -- ktlint starts a JVM, so allow extra time for Kotlin formatting.
+          return { timeout_ms = vim.bo[bufnr].filetype == 'kotlin' and 10000 or 500 }
         else
           return nil
         end

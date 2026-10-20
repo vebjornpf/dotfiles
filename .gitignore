@@ -23,5 +23,8 @@ config/tmux/.config/tmux/plugins/
 # Private skills (employer/machine-specific, not for public dotfiles)
 config/opencode/.config/opencode/skills/private-*/
 
+# Private OpenCode service configuration
+config/opencode/.config/opencode/service.json
+
 # macOS
 .DS_Store

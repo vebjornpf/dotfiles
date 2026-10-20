@@ -94,19 +94,33 @@ else
     --label "$selected_name"
     --focus
   )
+  environment_args=()
 
   if [[ "$selected_name" == fyk || "$selected_name" == fyk/* ]]; then
     fyk_repo_name=${selected_name#fyk/}
     [[ "$selected_name" == fyk ]] && fyk_repo_name=all
-    create_args+=(
+    environment_args+=(
       --env "FYK_REPO=1"
       --env "FYK_ROOT=$fyk_root"
       --env "FYK_REPO_NAME=$fyk_repo_name"
     )
+    create_args+=("${environment_args[@]}")
   fi
 
   workspace_json=$(herdr "${create_args[@]}" | jq -r '.result.workspace.workspace_id + "\t" + .result.tab.tab_id')
   workspace_id=${workspace_json%%$'\t'*}
   tab_id=${workspace_json#*$'\t'}
   herdr tab rename "$tab_id" "$selected_name" >/dev/null
+  herdr tab create \
+    --workspace "$workspace_id" \
+    --cwd "$selected_path" \
+    --label editor \
+    --no-focus \
+    "${environment_args[@]}" >/dev/null
+  herdr tab create \
+    --workspace "$workspace_id" \
+    --cwd "$selected_path" \
+    --label run \
+    --no-focus \
+    "${environment_args[@]}" >/dev/null
 fi

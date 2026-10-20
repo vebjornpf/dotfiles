@@ -8,6 +8,8 @@ return {
       { 'j-hui/fidget.nvim', opts = {} },
     },
     config = function()
+      vim.filetype.add { extension = { jsonc = 'jsonc' } }
+
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = require('features.lsp').on_attach,
@@ -16,10 +18,20 @@ return {
       ---@type table<string, vim.lsp.Config>
       local servers = {
         bashls = {},
+        gopls = {},
+        jsonls = {
+          filetypes = { 'json', 'jsonc' },
+          settings = {
+            json = {
+              validate = { enable = true },
+            },
+          },
+        },
         regal = {},
         stylua = {},
         kotlin_lsp = {},
         ts_ls = {},
+        yamlls = {},
         lua_ls = {
           on_init = function(client)
             client.server_capabilities.documentFormattingProvider = false

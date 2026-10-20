@@ -11,8 +11,10 @@ Usage: ghpr [command]
 Commands:
   ghpr        open my pull requests picker
   ghpr this   open current repo pull requests picker and locally check out the selected PR branch
-  ghpr this open <number>      open a current repo pull request in the browser
-  ghpr this checkout <number>  locally check out a current repo pull request
+  ghpr this open              open the current repo pull requests page in the browser
+  ghpr this <number> open      open a current repo pull request in the browser
+  ghpr this <number> checkout  locally check out a current repo pull request
+  ghpr this <number> cp        copy a current repo pull request URL
   ghpr mine   manage my pull requests
   ghpr mine clean
   ghpr mine list
@@ -33,27 +35,8 @@ if (( $# > 0 )); then
       ;;
     this)
       shift
-      if [[ "${1:-}" == open ]]; then
-        shift
-        if (( $# != 1 )); then
-          echo "Usage: ghpr this open <number>" >&2
-          exit 1
-        fi
-        gh pr view "$1" --web
-        exit 0
-      elif [[ "${1:-}" == checkout ]]; then
-        shift
-        if (( $# != 1 )); then
-          echo "Usage: ghpr this checkout <number>" >&2
-          exit 1
-        fi
-        bash "$GHPR_HOME/lib/open.sh" "" "$1"
-        exit 0
-      elif (( $# > 0 )); then
-        echo "Unknown ghpr this argument: $1" >&2
-        echo >&2
-        echo "Usage: ghpr this [open|checkout <number>]" >&2
-        exit 1
+      if (( $# > 0 )); then
+        exec bash "$GHPR_HOME/lib/this-action.sh" "$@"
       fi
       exec bash "$GHPR_HOME/lib/this-pick.sh"
       ;;

@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GHTEAM_HOME="${GHTEAM_HOME:-$HOME/.config/ghteam}"
+
+case "${1:-}" in
+  -h|--help|help)
+    cat <<'EOF'
+Usage: ghteam <org>
+
+Pick a GitHub team and preview its members' names.
+Enter opens the team on GitHub; Esc exits.
+
+Requires: gh (authenticated), fzf, jq.
+Only teams and members visible to your GitHub account are shown.
+EOF
+    exit 0
+    ;;
+esac
+
+if [[ $# -ne 1 || ! "$1" =~ ^[[:alnum:]][[:alnum:]-]*$ ]]; then
+  echo 'Usage: ghteam <org>' >&2
+  exit 1
+fi
+
+for dependency in gh fzf jq; do
+  if ! command -v "$dependency" >/dev/null 2>&1; then
+    printf 'ghteam: %s is required\n' "$dependency" >&2
+    exit 1
+  fi
+done
+
+exec bash "$GHTEAM_HOME/lib/picker.sh" "$1"

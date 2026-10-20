@@ -8,6 +8,10 @@ Each tool has a package under `config/` that gets symlinked into `$HOME`.
 - Answer concisely by default
 - Prefer short, direct responses unless the user asks for more detail
 
+## fzf pickers
+
+- When working on fzf pickers in this repo, always prefer placing the preview above the picker (`--preview-window=up`).
+
 ## Backlog
 
 The repo backlog lives in `backlog.md`.

@@ -2,8 +2,10 @@
 
 Supported commands:
 - `ghpr this` - opens current repo PRs and locally checks out the selected PR branch when available
-- `ghpr this open <number>` - opens a current-repo PR in the browser
-- `ghpr this checkout <number>` - locally checks out a current-repo PR
+- `ghpr this open` - runs `gh pr list --web` for the current repo
+- `ghpr this <number> open` - opens a current-repo PR in the browser
+- `ghpr this <number> checkout` - locally checks out a current-repo PR
+- `ghpr this <number> cp` - copies a current-repo PR URL
 - `ghpr mine`
 - `ghpr mine clean`
 - `ghpr mine list`
@@ -24,6 +26,8 @@ State:
 
 Notes:
 - `ghpr this` runs live against the current GitHub repo and does not store state
-- `ghpr this open` and `ghpr this checkout` tab completion lists open PRs from the current repository
+- Type `ghpr this ` and press Tab to fetch and select an open PR from the current repository; press Tab after the PR number to choose `open`, `checkout`, or `cp`
+- Action-first forms such as `ghpr this open <number>` also work and complete PR numbers
+- `cp` uses the shared clipboard helper and requires `pbcopy`, `clip.exe`, `wl-copy`, or `xclip`
 - In `ghpr mine`, `Enter` switches to the selected repo's tmux session, creating a local clone first when needed
 - `ghpr this` uses the PR head branch name for local checkout when available, with `pr-<number>` as fallback

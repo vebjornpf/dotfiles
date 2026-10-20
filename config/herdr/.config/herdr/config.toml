@@ -55,6 +55,12 @@ description = "fuzzy-pick a tab in the current workspace"
 width = "80%"
 height = "60%"
 
+[[keys.command]]
+key = "prefix+u"
+type = "plugin_action"
+command = "rmarganti.herdr-pluck.open-url"
+description = "open visible URL"
+
 [ui]
 agent_panel_sort = "spaces"
 window_title = "{workspace}"

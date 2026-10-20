@@ -21,6 +21,7 @@ packages=(
   ripgrep
   ghpr
   ghrepo
+  ghteam
   sonar
   web
   zsh

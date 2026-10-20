@@ -1,4 +1,60 @@
 local M = {}
+local warning_display_config
+
+local function without_warnings(severity)
+  local levels = {}
+  for level = vim.diagnostic.severity.ERROR, vim.diagnostic.severity.HINT do
+    local matches = severity == nil or severity == level
+    if type(severity) == 'table' then
+      if severity.min or severity.max then
+        matches = level <= (severity.min or vim.diagnostic.severity.HINT) and level >= (severity.max or vim.diagnostic.severity.ERROR)
+      else
+        matches = vim.tbl_contains(severity, level)
+      end
+    end
+    if matches and level ~= vim.diagnostic.severity.WARN then levels[#levels + 1] = level end
+  end
+  return levels
+end
+
+function M.list_clients()
+  local clients = vim.lsp.get_clients { bufnr = 0 }
+  local lines = {}
+  for _, client in ipairs(clients) do
+    lines[#lines + 1] = string.format('%s (id: %d)', client.name, client.id)
+  end
+  table.sort(lines)
+  local message = #lines > 0 and table.concat(lines, '\n') or 'No LSP clients attached to the current buffer'
+  vim.notify(message, vim.log.levels.INFO, { title = 'LSP clients' })
+end
+
+function M.toggle_diagnostics()
+  if warning_display_config then
+    vim.diagnostic.config(warning_display_config)
+    warning_display_config = nil
+    vim.notify('Warnings shown', vim.log.levels.INFO)
+    return
+  end
+
+  warning_display_config = {}
+  local config = vim.diagnostic.config()
+  local filtered = {}
+  for _, name in ipairs { 'signs', 'underline', 'virtual_text', 'virtual_lines', 'float' } do
+    warning_display_config[name] = vim.deepcopy(config[name])
+    if config[name] ~= false then
+      local options = type(config[name]) == 'table' and vim.deepcopy(config[name]) or {}
+      options.severity = without_warnings(options.severity)
+      filtered[name] = options
+    end
+  end
+  vim.diagnostic.config(filtered)
+  vim.notify('Warnings hidden', vim.log.levels.INFO)
+end
+
+function M.setup()
+  vim.api.nvim_create_user_command('LspClients', M.list_clients, { desc = 'List LSP clients attached to the current buffer' })
+  vim.api.nvim_create_user_command('DiagnosticsToggle', M.toggle_diagnostics, { desc = 'Toggle warning display in all buffers for this session' })
+end
 
 function M.on_attach(event)
   local map = function(keys, func, desc, mode)

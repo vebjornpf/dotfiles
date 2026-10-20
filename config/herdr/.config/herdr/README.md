@@ -15,7 +15,8 @@ picker.
 - `Ctrl-b Shift-o` - fuzzy-pick a project and focus or create its workspace
 
 New workspaces created through the project picker have their initial tab named
-`terminal`.
+after the project, plus `editor` and `run` tabs. The project tab stays focused
+when the workspace opens; the other tabs are created without running commands.
 
 The picker scans `$HOME/git` and immediate child directories of `$HOME`, while
 excluding directories ending in `-wk` because those are managed as worktrees.

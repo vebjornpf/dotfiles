@@ -36,8 +36,10 @@
 - Search: `features/search.lua` defines Telescope pickers for files, grep, buffers, commands, and Neovim config files.
 - Personal shortcuts: `features/shortcuts.lua` opens `neovim.md` and searches Markdown files under `~/.config/shortcuts/`, managed by the `shortcuts` Stow package. Opening notes keeps the file tree rooted in your project.
 - LSP: `features/lsp.lua` adds buffer-local LSP actions, Telescope-powered symbol/navigation pickers, and inlay-hint toggling.
+- Dependency sources: `features/jar_sources.lua` reads `jar://` locations returned by Kotlin LSP into read-only buffers and reuses the originating project's Kotlin LSP client for further navigation. Requires `unzip` on `PATH`.
 - Git: `features/git.lua` wires gitsigns hunk actions and diffview shortcuts.
 - File paths: `features/file_paths.lua` adds commands to copy the current filename or path to the system clipboard.
+- Gradle: `features/gradle.lua` compiles Kotlin tests asynchronously and puts compiler errors and warnings in quickfix.
 
 ## Main Shortcuts
 
@@ -88,11 +90,13 @@
 - `<leader>s.`: recent files.
 - `<leader>sc`: commands.
 - `<leader><leader>`: buffers.
-- `<leader>/`: fuzzy search inside the current buffer.
+- `<leader>/`: fuzzy search inside the current buffer in a 98%-wide, 95%-tall picker, with line-numbered matches on the left and surrounding code preview on the right.
 - `<leader>s/`: live grep in open files.
 - `<leader>sn`: search Neovim config files.
 
 ### LSP
+- `:DiagnosticsToggle`: hide or show only yellow warnings (signs, underlines, inline text, and diagnostic floats) in all buffers for the current session. Errors, information, and hints keep their existing display settings. Warnings remain available in diagnostic lists; LSP servers keep running. Restarting Neovim restores the default.
+- `:LspClients`: list LSP server names and client IDs attached to the current buffer, or report that none are attached.
 - `grn`: rename symbol.
 - `gra`: code action.
 - `grD`: declaration.
@@ -100,13 +104,16 @@
 - `grr`: references via Telescope.
 - `gri`: implementations via Telescope.
 - `grt`: type definitions via Telescope.
+- Navigation into dependencies supports source files inside local JARs (`jar://...jar!/path/to/File.kt`). These buffers are read-only; the source JAR must exist locally and `unzip` must be installed.
+- Kotlin JAR buffers reuse the Kotlin LSP client from the buffer you navigated from, enabling further LSP navigation without starting another server. Directly opened JAR sources attach automatically only when exactly one Kotlin LSP client is running. Use `:LspClients` to check attachment; symbol resolution still depends on the server's imported project and indexed dependencies.
 - `gO`: document symbols.
+- YAML files use `yamlls` for validation, completion, hover, and document symbols; use `gO` to find and jump to keys or sections. Mason installs the server automatically.
 - `gW`: workspace symbols.
 - `<leader>th`: toggle inlay hints when the server supports them.
 
 ### Git
 - `<leader>gs`: Telescope git status.
-- `<leader>gf`: Telescope files changed in `main...HEAD` (branch commits; deleted files excluded). Open a result with `<CR>`, `<C-t>`, `<C-v>`, or `<C-x>`.
+- `<leader>gf`: Telescope tracked files changed against local `main`, including staged and unstaged changes, with a diff preview. Deleted and untracked files are excluded. Open a result with `<CR>`, `<C-t>`, `<C-v>`, or `<C-x>`. Save buffers first; comparisons use files on disk.
 - `<leader>gd`: open Diffview for uncommitted changes (staged and unstaged) in the working tree.
 - `<leader>gb`: open Diffview for branch commits since diverging from `main` (`main...HEAD`); excludes uncommitted changes.
 - `<leader>gD`: close Diffview.
@@ -126,8 +133,12 @@
 - `<leader>hD`: diff against index side by side.
 
 ### Formatting And Requests
+- `:GradleTestCompile`: run `compileTestKotlin` using the nearest Gradle wrapper above the current file (or working directory). Requires an executable `gradlew` and the project's JDK. Save source files first; this compiles files on disk and does not run tests.
+- Compilation errors open quickfix; press `<CR>` on an entry or use `:cnext` / `:cprev` to jump to its location. Build failures without compiler locations show raw output. Results are quickfix entries, separate from LSP diagnostics.
 - `<leader>f`: format the current buffer through `conform.nvim`.
-- JSON buffers use the system `jq` formatter; Kotlin and shell buffers use `ktlint` and `shfmt`.
+- JSON buffers use the system `jq` formatter automatically on save; `<leader>f` formats manually. Kotlin and shell buffers use `ktlint` and `shfmt`.
+- `jsonls` provides diagnostics for invalid JSON and JSONC; inspect a diagnostic with `K` or use `<leader>q` to list buffer diagnostics.
+- Kotlin buffers also format automatically on save, with a 10-second timeout for `ktlint` startup.
 - `<leader>Rs`: send HTTP request in `kulala.nvim`.
 - `<leader>Ra`: send all requests in the file.
 - `<leader>Rb`: open Kulala scratchpad.
@@ -158,6 +169,7 @@
 ### Mini.nvim Mappings Used Here
 - `mini.ai`: `aa` and `ii` target the next surrounding text object.
 - `mini.surround`: default mappings are active, including `sa` add, `sd` delete, and `sr` replace.
+- `mini.pairs`: automatically closes parentheses, brackets, braces, and quotes in insert mode; typing the closing character skips over an existing pair.
 
 ### Visual Block Help
 - Enter visual block mode with `<C-q>`.
@@ -179,9 +191,9 @@
 - `kulala.lua`: `kulala.nvim` for running HTTP and REST requests from `.http` or `.rest` buffers.
 - `mermaid.lua`: `mermaid.nvim` for dedicated Mermaid previews, formatting, diagnostics, and optional terminal rendering.
 - `markdown-preview.lua`: `markdown-preview.nvim` with `live-server.nvim` for full Markdown previews, including Mermaid code blocks.
-- `mini.lua`: `mini.nvim` modules currently used for `mini.ai`, `mini.surround`, and `mini.statusline` (filename-only statusline).
+- `mini.lua`: `mini.nvim` modules currently used for `mini.ai`, `mini.surround`, `mini.pairs` (automatic closing pairs), and `mini.statusline` (filename-only statusline).
 - `nvim-lint.lua`: `nvim-lint` for shell linting on enter, write, and insert leave.
-- `nvim-lspconfig.lua`: `nvim-lspconfig` plus Mason tooling for LSP server setup and installation.
+- `nvim-lspconfig.lua`: `nvim-lspconfig` plus Mason tooling for LSP server setup and installation, including `gopls` for Go, `jsonls` diagnostics for JSON/JSONC, and `yamlls` for YAML validation, completion, and symbol navigation.
 - `nvim-tree.lua`: `nvim-tree.lua` file explorer on the right with git status, root syncing, and a minimum width of 50 columns that grows to fit visible entries.
 - `render-markdown.lua`: `render-markdown.nvim` for readable Markdown inside Neovim, using plain heading markers and no Nerd Font-dependent code or link icons.
 - `telescope.lua`: `telescope.nvim` plus FZF and UI-select extensions for file, grep, buffer, and LSP pickers.
@@ -198,6 +210,7 @@
 - Change Telescope behavior or search mappings in `lua/plugins/telescope.lua` and `lua/features/search.lua`.
 - Change tree behavior in `lua/plugins/nvim-tree.lua` and `lua/features/ui.lua`.
 - Change LSP server setup in `lua/plugins/nvim-lspconfig.lua` and LSP mappings in `lua/features/lsp.lua`.
+- Change JAR dependency source loading in `lua/features/jar_sources.lua`.
 - Change git keymaps in `lua/features/git.lua`.
 - Change personal shortcut access in `lua/features/shortcuts.lua`; edit the notes in `~/.config/shortcuts/`.
 

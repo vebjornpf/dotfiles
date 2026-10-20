@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "keybinds": {
+    "session.message.user.previous": "alt+pageup",
+    "session.message.user.next": "alt+pagedown"
+  },
+  "theme": {
+    "name": "catppuccin-frappe-transparent"
+  },
+  "diffs": {
+    "wrap": "word"
+  },
+  "session": {
+    "sidebar": "hide",
+    "scrollbar": false,
+    "thinking": "hide"
+  },
+  "animations": true
+}

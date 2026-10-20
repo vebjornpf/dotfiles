@@ -11,9 +11,26 @@ function M.setup()
       return
     end
 
+    local cwd = vim.fn.systemlist({ 'git', 'rev-parse', '--show-toplevel' })[1]
+    local preview_utils = require 'telescope.previewers.utils'
+
     builtin.git_files {
-      prompt_title = 'Files changed from main',
-      git_command = { 'git', '-c', 'core.quotepath=false', 'diff', '--name-only', '--diff-filter=ACMRT', 'main...HEAD' },
+      cwd = cwd,
+      prompt_title = 'Files changed against main (including uncommitted)',
+      git_command = { 'git', '-c', 'core.quotepath=false', 'diff', '--name-only', '--diff-filter=ACMRT', 'main', '--' },
+      previewer = require('telescope.previewers').new_buffer_previewer {
+        title = 'Diff against main',
+        get_buffer_by_name = function(_, entry) return entry.value end,
+        define_preview = function(self, entry)
+          preview_utils.job_maker({ 'git', '--no-pager', 'diff', '--no-ext-diff', '--no-color', 'main', '--', entry.value }, self.state.bufnr, {
+            cwd = cwd,
+            bufname = self.state.bufname,
+            callback = function(bufnr)
+              if vim.api.nvim_buf_is_valid(bufnr) then preview_utils.highlighter(bufnr, 'diff') end
+            end,
+          })
+        end,
+      },
     }
   end, { desc = '[G]it changed [F]iles from main' })
   vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
@@ -74,10 +91,14 @@ function M.setup()
   end, { desc = '[ ] Find existing buffers' })
 
   vim.keymap.set('n', '<leader>/', function()
-    builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-      winblend = 10,
-      previewer = false,
-    })
+    builtin.current_buffer_fuzzy_find {
+      layout_strategy = 'horizontal',
+      layout_config = {
+        width = 0.98,
+        height = 0.95,
+      },
+      previewer = true,
+    }
   end, { desc = '[/] Fuzzily search in current buffer' })
 
   vim.keymap.set('n', '<leader>s/', function()
