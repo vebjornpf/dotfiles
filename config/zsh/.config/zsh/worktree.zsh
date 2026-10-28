@@ -66,8 +66,55 @@ _wt_create() {
   fi
 
   mkdir -p -- "${target:h}" || return
-  herdr worktree create --cwd "$checkout" --base "$base" --branch "$name" \
-    --path "$target" --label "$name" --focus --trust-repository
+  _wt_herdr_workspace "$checkout" "$target" "$name" create "$base" "$name"
+}
+
+_wt_create_from() {
+  _wt_require_open || return
+  local base=${1:-} name=${2:-}
+  local source common_dir rows selected target
+
+  source=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    print -u2 'wt: run create-from inside a Git checkout'
+    return 1
+  }
+  if [[ -z $base ]]; then
+    _wt_require_open fzf || return
+    rows=$(_wt_branch_rows) || return
+    if [[ -z $rows ]]; then
+      print -u2 'wt: no branches found'
+      return 1
+    fi
+    selected=$(print -r -- "$rows" | fzf --no-sort --delimiter=$'\t' --prompt='Base> ') || return
+    [[ -n $selected ]] || return 1
+    base=${selected#*$'\t'}
+  fi
+  if ! git rev-parse --verify --quiet "$base^{commit}" >/dev/null; then
+    print -u2 -- "wt: base not found: $base"
+    return 1
+  fi
+  if [[ -z $name ]]; then
+    read -r "name?New branch from $base: " || return
+  fi
+  if [[ $name == */* || $name == . || $name == .. ]] || ! git check-ref-format --branch "$name" >/dev/null 2>&1; then
+    print -u2 'wt: name must be a valid branch and a single directory name'
+    return 1
+  fi
+  if git show-ref --verify --quiet "refs/heads/$name"; then
+    print -u2 -- "wt: branch already exists: $name"
+    return 1
+  fi
+
+  common_dir=$(git rev-parse --path-format=absolute --git-common-dir) || return
+  target="$HOME/.herdr/worktrees/${common_dir:h:t}/$name"
+  if [[ -e $target || -L $target ]]; then
+    print -u2 -- "wt: path already exists: $target"
+    return 1
+  fi
+
+  mkdir -p -- "${target:h}" || return
+  git -C "$source" worktree add --no-track -b "$name" -- "$target" "$base" || return
+  _wt_open_workspace "$source" "$target" "$name"
 }
 
 _wt_require_open() {
@@ -104,6 +151,40 @@ _wt_slug() {
   print -r -- "$slug"
 }
 
+_wt_herdr_workspace() {
+  local source=$1 target=$2 label=$3 action=$4 base=${5:-} branch=${6:-}
+  local before workspace_id tab_id common_dir repo
+
+  if ! command -v jq >/dev/null 2>&1; then
+    print -u2 'wt: jq is required to set up a Herdr worktree workspace'
+    return 1
+  fi
+
+  before=$(herdr worktree list --cwd "$source" --trust-repository |
+    jq -r --arg path "$target" '.result.worktrees[]? | select(.path == $path) | .open_workspace_id // empty') || return
+
+  if [[ $action == create ]]; then
+    herdr worktree create --cwd "$source" --base "$base" --branch "$branch" \
+      --path "$target" --label "$label" --focus --trust-repository >/dev/null || return
+  else
+    herdr worktree open --cwd "$source" --path "$target" \
+      --label "$label" --focus --trust-repository >/dev/null || return
+  fi
+
+  [[ -z $before ]] || return 0
+  workspace_id=$(herdr worktree list --cwd "$source" --trust-repository |
+    jq -r --arg path "$target" '.result.worktrees[]? | select(.path == $path) | .open_workspace_id // empty') || return
+  [[ -n $workspace_id ]] || { print -u2 'wt: could not find new Herdr workspace'; return 1; }
+  tab_id=$(herdr tab list --workspace "$workspace_id" | jq -r '.result.tabs[0].tab_id // empty') || return
+  [[ -n $tab_id ]] || { print -u2 'wt: could not find initial Herdr tab'; return 1; }
+
+  common_dir=$(git -C "$target" rev-parse --path-format=absolute --git-common-dir) || return
+  repo=${common_dir:h:t}
+  herdr tab rename "$tab_id" "$repo-wt" >/dev/null || return
+  herdr tab create --workspace "$workspace_id" --cwd "$target" --label editor --no-focus >/dev/null || return
+  herdr tab create --workspace "$workspace_id" --cwd "$target" --label run --no-focus >/dev/null
+}
+
 _wt_open_workspace() {
   local source=$1 target=$2 label=$3 source_common target_common
   source_common=$(git -C "$source" rev-parse --path-format=absolute --git-common-dir) || return
@@ -112,8 +193,7 @@ _wt_open_workspace() {
     print -u2 -- "wt: not a worktree of the current repository: $target"
     return 1
   fi
-  herdr worktree open --cwd "$source" --path "$target" \
-    --label "$label" --focus --trust-repository >/dev/null
+  _wt_herdr_workspace "$source" "$target" "$label" open
 }
 
 _wt_branch_rows() {
@@ -294,8 +374,7 @@ _wt_cd() {
     label=${name#pr-}
     label="#${label%%-*}"
   fi
-  herdr worktree open --cwd "${common_dir:h}" --path "$selected" \
-    --label "$label" --focus --trust-repository >/dev/null
+  _wt_herdr_workspace "${common_dir:h}" "$selected" "$label" open
 }
 
 _wt_remove() {
@@ -340,7 +419,7 @@ wt() {
   case $1 in
     ''|list)
       if (( $# > 1 )); then
-        print -u2 'Usage: wt [list | branch | pr | cd <worktree-path> | create <name> | remove [worktree-path]]'
+        print -u2 'Usage: wt [list | branch | pr | cd <worktree-path> | create <name> | create-from [base] [name] | remove [worktree-path]]'
         return 1
       fi
       _wt_list
@@ -366,6 +445,13 @@ wt() {
       fi
       _wt_create "$2"
       ;;
+    create-from)
+      if (( $# > 3 )); then
+        print -u2 'Usage: wt create-from [base] [name]'
+        return 1
+      fi
+      _wt_create_from "${@:2}"
+      ;;
     remove)
       if (( $# > 2 )); then
         print -u2 'Usage: wt remove [worktree-path]'
@@ -374,7 +460,7 @@ wt() {
       _wt_remove "${@:2}"
       ;;
     *)
-      print -u2 'Usage: wt [list | branch | pr | cd <worktree-path> | create <name> | remove [worktree-path]]'
+      print -u2 'Usage: wt [list | branch | pr | cd <worktree-path> | create <name> | create-from [base] [name] | remove [worktree-path]]'
       return 1
       ;;
   esac
@@ -389,13 +475,14 @@ _wt() {
         'pr:pick an open pull request to open in Herdr'
         'cd:open a Herdr worktree workspace'
         'create:create a worktree from the current branch'
+        'create-from:create a worktree from a chosen base branch'
         'remove:remove a clean Herdr worktree'
       )
       _describe 'wt command' commands
       ;;
     3)
       case ${words[2]} in
-        branch)
+        branch|create-from)
           local kind branch
           local -a branches
           while IFS=$'\t' read -r kind branch; do
@@ -428,6 +515,9 @@ _wt() {
           (( ${#worktrees} )) && _describe 'worktree' worktrees
           ;;
       esac
+      ;;
+    4)
+      [[ ${words[2]} == create-from ]] && _message 'new branch/worktree name'
       ;;
   esac
 }

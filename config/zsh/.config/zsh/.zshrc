@@ -18,6 +18,7 @@ elif [ -f /home/linuxbrew/.linuxbrew/bin/brew ]; then
 fi
 
 export PATH="$HOME/.config/tmux/scripts:$HOME/.local/bin:$PATH"
+command -v mise >/dev/null && eval "$(mise activate zsh)"
 export EDITOR=nvim
 export VISUAL=nvim
 

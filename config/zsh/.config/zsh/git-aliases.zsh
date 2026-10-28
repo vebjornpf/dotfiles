@@ -39,6 +39,34 @@ alias gco='git checkout'
 alias gcob='git checkout -b'
 alias gcom='git checkout main'
 
+# Switch branch; completion lists branches by most recently visited
+gsw() { git switch "$@"; }
+
+_gsw_branches() {
+  local current
+  current=$(git branch --show-current 2>/dev/null)
+  {
+    git reflog --format='%gs' 2>/dev/null \
+      | sed -n 's/^checkout: moving from .* to //p'
+    git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/heads 2>/dev/null
+  } | awk -v cur="$current" '$0 != cur && !seen[$0]++' \
+    | while read -r b; do
+        git show-ref -q --verify "refs/heads/$b" && print -r -- "$b"
+      done
+}
+
+_gsw() {
+  local -a branches
+  branches=(${(f)"$(_gsw_branches)"})
+  compadd -V recent -- $branches
+}
+_gsw_register() {
+  compdef _gsw gsw
+  add-zsh-hook -d precmd _gsw_register
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _gsw_register
+
 # Stash
 alias gst='git stash'
 alias gsta='git stash apply'
@@ -51,8 +79,8 @@ alias gdm='nvim -c "DiffviewOpen main...HEAD"'
 alias gdom='git fetch origin && nvim -c "DiffviewOpen origin/main...HEAD"'
 alias gds='git diff --staged'
 alias gl='git log --oneline --graph'
-alias glm='git log --oneline --decorate --graph --boundary main..HEAD'
-alias glom='git log --oneline --decorate --graph --boundary origin/main..HEAD'
+alias glm='git log --oneline --decorate --graph --left-right --boundary main...HEAD'
+alias glom='git log --oneline --decorate --graph --left-right --boundary origin/main...HEAD'
 alias glf='git log --stat --decorate'
 alias glog='git log --oneline --decorate --graph --all'
 alias gsh='git show'

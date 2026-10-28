@@ -6,6 +6,9 @@ picker.
 ## Usage
 
 - `Ctrl-b w` - switch between workspaces
+- `Ctrl-b Shift-w` - fuzzy-pick an open workspace; Enter focuses it, Ctrl-x closes
+  it without leaving the picker. Closing the active workspace first focuses another
+  workspace. The last workspace stays open; close failures appear in the header.
 - `Ctrl-Alt-K` / `Ctrl-Alt-J` - move to the previous or next workspace
 - `Ctrl-Alt-H` / `Ctrl-Alt-L` - move to the previous or next tab
 - `Ctrl-Alt-Up` / `Ctrl-Alt-Down` - move to the previous or next agent
@@ -57,6 +60,8 @@ The Zsh `wt` command manages worktrees under `~/.herdr/worktrees/<repo>/`:
   opens a picker when no path is supplied.
 
 `wt branch` and `wt pr` run inside Herdr and create or focus a worktree workspace.
+New worktree workspaces have a `<repo>-wt` tab plus `editor` and `run` tabs,
+with the first tab focused. Existing workspaces keep their tabs unchanged.
 Supply a branch or PR number to open it directly. Tab after `wt branch ` suggests
 local branches first, then remote branches (such as `origin/feature`); Tab after
 `wt pr ` suggests open PR numbers with titles, authors, and branches.
@@ -64,5 +69,5 @@ Existing checkouts are reused without updating their files. Branch names with
 slashes use a flattened directory name; occupied paths are rejected. A remote
 branch whose local name already exists must match that local branch's upstream.
 
-Requires `git`, `herdr`, and `fzf`; PR picking also requires `jq` and an
+Requires `git`, `herdr`, and `jq`; interactive picking also requires `fzf`, and PRs need an
 authenticated `gh` with support for `gh pr checkout --worktree`.

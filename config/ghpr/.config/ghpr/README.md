@@ -27,6 +27,7 @@ State:
 Notes:
 - `ghpr this` runs live against the current GitHub repo and does not store state
 - Type `ghpr this ` and press Tab to fetch and select an open PR from the current repository; press Tab after the PR number to choose `open`, `checkout`, or `cp`
+- PR completions show the title, author, state, source branch, and update date on separate lines, wrapped to the terminal width; selecting one inserts only its number
 - Action-first forms such as `ghpr this open <number>` also work and complete PR numbers
 - `cp` uses the shared clipboard helper and requires `pbcopy`, `clip.exe`, `wl-copy`, or `xclip`
 - In `ghpr mine`, `Enter` switches to the selected repo's tmux session, creating a local clone first when needed

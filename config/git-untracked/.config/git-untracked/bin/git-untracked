@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GIT_UNTRACKED_HOME="${GIT_UNTRACKED_HOME:-$HOME/.config/git-untracked}"
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo 'git-untracked: python3 is required' >&2
+  exit 1
+fi
+
+exec python3 "$GIT_UNTRACKED_HOME/lib/git_untracked.py" "$@"

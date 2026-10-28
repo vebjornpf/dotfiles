@@ -17,6 +17,8 @@ cd "$CONFIG_DIR" || exit 1
 
 # Common packages — stowed on every platform
 packages=(
+  gradle-tests
+  git-untracked
   jira
   ripgrep
   ghpr
