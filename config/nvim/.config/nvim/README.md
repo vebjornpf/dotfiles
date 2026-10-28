@@ -113,6 +113,9 @@
 - `<leader>th`: toggle inlay hints when the server supports them.
 
 ### Git
+- `:GitBaseMain`: compare Gitsigns gutter markers and hunks against local `main` in all open and future buffers.
+- `:GitBaseOriginMain`: use cached `origin/main` instead; fetch separately to refresh it.
+- `:GitBaseReset`: restore the normal staging-area comparison in all buffers. Base choices last for the current Neovim session and include unsaved edits; they compare directly against the chosen branch tip, not the merge base.
 - `<leader>gs`: Telescope git status.
 - `<leader>gf`: Telescope tracked files changed against local `main`, including staged and unstaged changes, with a diff preview. Deleted and untracked files are excluded. Open a result with `<CR>`, `<C-t>`, `<C-v>`, or `<C-x>`. Save buffers first; comparisons use files on disk.
 - `<leader>gd`: open Diffview for uncommitted changes (staged and unstaged) in the working tree.
@@ -120,6 +123,12 @@
 - `<leader>gD`: close Diffview.
 - `<leader>gH`: file history in Diffview.
 - Diffview compares files side by side, including merge conflicts.
+- `<leader>gp`: browse GitHub pull requests with Octo and Telescope. Requires `gh` authenticated with `gh auth login`.
+- `:Octo pr edit <number>`: open a PR in the current repository; `:Octo <url>` opens a GitHub PR URL directly. `:Octo` lists available actions.
+- In an Octo PR buffer, `<CR>` shows actions; `<Space>ca` adds a general comment. Edit it and `:w` to publish it to GitHub.
+- `:Octo review start` opens a PR review. On a changed line (or visual selection), `<Space>ca` adds an inline comment; `:w` saves it to the pending review. Use `:Octo review resume` for an existing pending review.
+- `:Octo review submit` opens the submission window: `<C-a>` approves, `<C-r>` requests changes, and `<C-m>` submits a comment-only review (normal mode). `:Octo review close` closes the review view.
+- In Octo reviews, `]q` / `[q` navigate changed files, `]t` / `[t` navigate threads, and `<Space>rt` resolves the current thread. These are Octo's buffer-local defaults; `<localleader>` is Space here.
 - `<leader>gy`: copy remote git link.
 - `<leader>gO`: open remote git link.
 - `<leader>hn`, `<leader>hN`: next and previous git hunk.
@@ -196,6 +205,7 @@
 - `nvim-lint.lua`: `nvim-lint` for shell linting on enter, write, and insert leave.
 - `nvim-lspconfig.lua`: `nvim-lspconfig` plus Mason tooling for LSP server setup and installation, including `gopls` for Go, `jsonls` diagnostics for JSON/JSONC, and `yamlls` for YAML validation, completion, and symbol navigation.
 - `nvim-tree.lua`: `nvim-tree.lua` file explorer on the right with git status, root syncing, and a minimum width of 50 columns that grows to fit visible entries.
+- `octo.lua`: `octo.nvim` for GitHub PR browsing, comments, review threads, and review submission, using `gh` and Telescope without Nerd Font icons.
 - `render-markdown.lua`: `render-markdown.nvim` for readable Markdown inside Neovim, using plain heading markers and no Nerd Font-dependent code or link icons.
 - `telescope.lua`: `telescope.nvim` plus FZF and UI-select extensions for file, grep, buffer, and LSP pickers.
 - `todo-comments.lua`: `todo-comments.nvim` for highlighting and navigating TODO-style comments.

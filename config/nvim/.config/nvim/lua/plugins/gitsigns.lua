@@ -1,6 +1,9 @@
 return {
   {
     'lewis6991/gitsigns.nvim',
+    init = function()
+      require('features.git').setup_commands()
+    end,
     ---@module 'gitsigns'
     ---@type Gitsigns.Config
     ---@diagnostic disable-next-line: missing-fields

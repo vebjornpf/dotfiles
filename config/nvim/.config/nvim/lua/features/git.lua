@@ -1,5 +1,19 @@
 local M = {}
 
+function M.setup_commands()
+  vim.api.nvim_create_user_command('GitBaseMain', function()
+    require('gitsigns').change_base('main', true)
+  end, { desc = 'Compare all buffers against local main' })
+
+  vim.api.nvim_create_user_command('GitBaseOriginMain', function()
+    require('gitsigns').change_base('origin/main', true)
+  end, { desc = 'Compare all buffers against cached origin/main' })
+
+  vim.api.nvim_create_user_command('GitBaseReset', function()
+    require('gitsigns').reset_base(true)
+  end, { desc = 'Reset all buffers to the Git index comparison' })
+end
+
 function M.gitsigns_on_attach(bufnr)
   local gs = package.loaded.gitsigns
 
