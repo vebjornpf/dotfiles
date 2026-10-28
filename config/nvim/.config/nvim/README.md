@@ -86,6 +86,7 @@
 - `<leader>sw`: grep the current word or selection.
 - `<leader>ss`: list Telescope pickers.
 - `<leader>sd`: search diagnostics.
+- `<leader>sm`: search buffers with unsaved changes, including unnamed buffers; preview current in-memory contents and press `<CR>` to open.
 - `<leader>sr`: resume the last Telescope picker.
 - `<leader>s.`: recent files.
 - `<leader>sc`: commands.
@@ -216,5 +217,5 @@
 
 ## Notes
 - `have_nerd_font` is currently `false`, so icon-heavy plugin features stay disabled.
-- The default register uses the system clipboard (`unnamedplus`), so `y` copies to it and `p` pastes from it. On WSL, clipboard integration uses `clip.exe` and `powershell.exe`.
+- Ordinary yanks (`y`, `yy`, visual `y`) also copy to the system clipboard; deletes and changes stay in Neovim's internal registers. Explicit register choices are preserved. `p` pastes from the internal register; `"+p` pastes from the system clipboard. On WSL, clipboard integration uses `win32yank.exe` when available, falling back to `clip.exe` and `powershell.exe`.
 - The file tree is `nvim-tree`; `mini.nvim` is used for text objects, surround editing, and statusline, not file browsing.

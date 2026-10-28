@@ -36,14 +36,14 @@ case "$target" in
       --json number,title,repository,author,url,isDraft,updatedAt \
       | render_search_results
     ;;
-  this)
+  this|this-completions)
     repo="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null)" || {
       echo "ghpr this must run inside a GitHub repository." >&2
       exit 1
     }
     gh pr list --repo "$repo" --state open --limit "$limit" \
-      --json number,title,author,url,isDraft,updatedAt \
-      | jq -r --arg repo "$repo" '
+      --json number,title,author,url,isDraft,updatedAt,headRefName \
+      | jq -r --arg repo "$repo" --arg target "$target" '
           sort_by(.updatedAt) | reverse | .[] |
           [
             (.number | tostring),
@@ -53,7 +53,7 @@ case "$target" in
             (if .isDraft then "draft" else "open" end),
             (.title | gsub("[\\t\\r\\n]+"; " ")),
             .url
-          ] | @tsv
+          ] + (if $target == "this-completions" then [(.headRefName // "unknown")] else [] end) | @tsv
         '
     ;;
   team)

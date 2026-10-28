@@ -21,7 +21,8 @@ vim.o.inccommand = 'split'
 vim.o.cursorline = true
 vim.o.scrolloff = 10
 vim.o.confirm = true
-vim.opt.clipboard = 'unnamedplus'
+-- Only yanks are mirrored to the clipboard (see config/autocmds.lua).
+vim.opt.clipboard = ''
 
 if vim.fn.has('wsl') == 1 and vim.fn.executable('win32yank.exe') == 1 then
   vim.g.clipboard = {

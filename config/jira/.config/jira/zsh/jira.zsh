@@ -14,7 +14,33 @@ if [[ -d "$jira_bin_dir" && ":$PATH:" != *":$jira_bin_dir:"* ]]; then
   path=("$jira_bin_dir" $path)
 fi
 
+_jira_complete_epics() {
+  local tag="$1" file="$JIRA_STATE_DIR/epics-completion.tsv"
+  local key issue_status summary display
+  local -a keys displays
+  [[ -f "$file" ]] || return
+
+  if [[ -z "$PREFIX" || "$PREFIX" == [A-Z]##(-[0-9]#|) ]]; then
+    while IFS=$'\t' read -r key issue_status summary; do
+      [[ -n "$key" ]] && keys+=("$key") && displays+=("$key - $issue_status - $summary")
+    done < "$file"
+    (( ${#keys[@]} > 0 )) && compadd -J "$tag" -X 'Epics' -d displays -- "${keys[@]}"
+    return
+  fi
+
+  local needle="$PREFIX$SUFFIX"
+  while IFS=$'\t' read -r key issue_status summary; do
+    [[ -n "$key" ]] || continue
+    display="$key - $issue_status - $summary"
+    [[ "$display" == (#i)*"$needle"* ]] || continue
+    keys+=("$key")
+    displays+=("$display")
+  done < "$file"
+  (( ${#keys[@]} > 0 )) && compadd -U -J "$tag" -X 'Epics' -d displays -- "${keys[@]}"
+}
+
 _jira() {
+  setopt local_options extended_glob
   local -a top_level scope_commands item_options epic_commands epic_subtask_commands create_types create_priorities create_options keys displays
   local key issue_status summary file epic_file previous_token
 
@@ -38,12 +64,7 @@ _jira() {
     team|me|backlog|epics)
       if (( CURRENT == 3 )); then
         compadd -- "${scope_commands[@]}"
-        if [[ "${words[2]-}" == epics && -f "$JIRA_STATE_DIR/epics-completion.tsv" ]]; then
-          while IFS=$'\t' read -r key issue_status summary; do
-            [[ -n "$key" ]] && keys+=("$key") && displays+=("$key - $issue_status - $summary")
-          done < "$JIRA_STATE_DIR/epics-completion.tsv"
-          (( ${#keys[@]} > 0 )) && compadd -J jira-epic-keys -X 'Epics' -d displays -- "${keys[@]}"
-        fi
+        [[ "${words[2]-}" == epics ]] && _jira_complete_epics jira-epic-keys
         if [[ "${words[2]-}" == me && -f "$JIRA_STATE_DIR/me-completion.tsv" ]]; then
           while IFS=$'\t' read -r key issue_status summary; do
             [[ -n "$key" ]] && keys+=("$key") && displays+=("$key - $issue_status - $summary")
@@ -88,13 +109,7 @@ _jira() {
       ;;
     create)
       if (( CURRENT == 3 )); then
-        epic_file="$JIRA_STATE_DIR/epics-completion.tsv"
-        if [[ -f "$epic_file" ]]; then
-          while IFS=$'\t' read -r key issue_status summary; do
-            [[ -n "$key" ]] && keys+=("$key") && displays+=("$key - $issue_status - $summary")
-          done < "$epic_file"
-          (( ${#keys[@]} > 0 )) && compadd -J jira-create-epics -X 'Epics' -d displays -- "${keys[@]}"
-        fi
+        _jira_complete_epics jira-create-epics
       elif (( CURRENT == 4 )) && [[ "${words[3]-}" =~ ^[A-Z][A-Z0-9]*-[0-9]+$ ]]; then
         compadd -- "${create_types[@]}"
       elif (( CURRENT == 5 )) && [[ "${words[4]-}" == (Story|Spike|Bug) ]]; then

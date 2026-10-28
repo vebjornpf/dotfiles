@@ -80,6 +80,36 @@ function M.setup()
     }
   end, { desc = '[S]earch grep in [T]mp' })
   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
+  vim.keymap.set('n', '<leader>sm', function()
+    local buffers = {}
+    for _, info in ipairs(vim.fn.getbufinfo { buflisted = 1, bufmodified = 1 }) do
+      table.insert(buffers, { bufnr = info.bufnr, info = info, flag = ' ' })
+    end
+    if #buffers == 0 then
+      vim.notify('No unsaved buffers', vim.log.levels.INFO)
+      return
+    end
+
+    local previewers = require 'telescope.previewers'
+    local conf = require('telescope.config').values
+    require('telescope.pickers').new({}, {
+      prompt_title = 'Unsaved Buffers',
+      finder = require('telescope.finders').new_table {
+        results = buffers,
+        entry_maker = require('telescope.make_entry').gen_from_buffer {},
+      },
+      sorter = conf.generic_sorter {},
+      previewer = previewers.new_buffer_previewer {
+        title = 'Unsaved contents',
+        define_preview = function(self, entry)
+          if not vim.api.nvim_buf_is_valid(entry.bufnr) then return end
+          local lines = vim.api.nvim_buf_get_lines(entry.bufnr, 0, -1, false)
+          vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+          require('telescope.previewers.utils').highlighter(self.state.bufnr, vim.bo[entry.bufnr].filetype)
+        end,
+      },
+    }):find()
+  end, { desc = '[S]earch [M]odified buffers' })
   vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
   vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })

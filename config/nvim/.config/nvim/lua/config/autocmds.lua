@@ -1,4 +1,15 @@
 vim.api.nvim_create_autocmd('TextYankPost', {
+  desc = 'Copy ordinary yanks to the system clipboard',
+  group = vim.api.nvim_create_augroup('clipboard-yank', { clear = true }),
+  callback = function()
+    local event = vim.v.event
+    if event.operator == 'y' and event.regname == '' then
+      vim.fn.setreg('+', event.regcontents, event.regtype)
+    end
+  end,
+})
+
+vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function() vim.hl.on_yank() end,

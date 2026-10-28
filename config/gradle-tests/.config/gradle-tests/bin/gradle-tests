@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+GRADLE_TESTS_HOME="${GRADLE_TESTS_HOME:-$HOME/.config/gradle-tests}"
+
+if ! command -v python3 >/dev/null 2>&1; then
+  echo 'gradle-tests: python3 is required' >&2
+  exit 1
+fi
+
+exec python3 "$GRADLE_TESTS_HOME/lib/gradle_tests.py" "$@"
