@@ -2,6 +2,7 @@ local M = {}
 
 function M.which_key_spec()
   return {
+    { '<leader>a', group = '[A]gent', mode = { 'n', 'x' } },
     { '<leader>g', group = '[G]it' },
     { '<leader>mp', group = '[M]arkdown [P]review' },
     { '<leader>o', group = '[O]pen' },

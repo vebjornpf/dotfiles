@@ -40,6 +40,7 @@
 - Git: `features/git.lua` wires gitsigns hunk actions and diffview shortcuts.
 - File paths: `features/file_paths.lua` adds commands to copy the current filename or path to the system clipboard.
 - Gradle: `features/gradle.lua` compiles Kotlin tests asynchronously and puts compiler errors and warnings in quickfix.
+- Agent comments: `features/agent_comments.lua` collects selected code and comments, then sends a batch to a detected Herdr agent.
 
 ## Main Shortcuts
 
@@ -111,6 +112,20 @@
 - YAML files use `yamlls` for validation, completion, hover, and document symbols; use `gO` to find and jump to keys or sections. Mason installs the server automatically.
 - `gW`: workspace symbols.
 - `<leader>th`: toggle inlay hints when the server supports them.
+
+### Agent Comments
+- `<leader>a`: which-key group labeled **Agent**, available in normal and visual mode.
+- Select code visually, then `<leader>ac`: enter a one-line comment. The selection, file path, and original line range append to a Markdown queue; source files are untouched.
+- Each comment gets a stable ID (`C1`, `C2`, etc.) in its heading. Existing unnumbered entries receive IDs on open/add/send. Keep IDs and the `next-comment-id` metadata intact when editing: reordering/deleting comments does not renumber or reuse IDs. Flushing starts a fresh batch at `C1`.
+- Sending appends reply instructions asking for a separate answer under each matching ID/path heading, with the original question, a direct answer, changes/verification where applicable, and explicit decisions needed. Questions are not treated as automatic change requests. Instructions are included in sent archives, not added to the queue. Reference follow-ups by ID, e.g. "For C2, use five minutes."
+- `<leader>aq`: open the queue to review, edit, or remove entries. Save edits with `:w` before adding or sending comments.
+- `<leader>as`: pick a detected agent in the current Herdr workspace to submit immediately, without a confirmation dialog. The message asks the agent to address the collected comments, including when already working. Blocked agents are rejected. Sending never clears the queue; sending again resends all its contents.
+- The agent picker uses 98% width and 95% height, with a large right-hand preview showing the title, status, workspace/tab/pane, directory, and current terminal view of the selected agent. This is a passive snapshot, not full conversation history; it does not scroll or interrupt the agent. Use `<C-d>` / `<C-u>` to scroll the preview, Enter to send, and Esc in normal mode to cancel. Preview behavior lives in `features/agent_picker.lua`.
+- `<leader>af`: manually flush (empty) the queue after confirmation (Cancel is the default). Save queue edits first; flushing is blocked while a send is in progress. Sent archives are kept.
+- The picker also offers **New OpenCode agent…**: finds the tab whose label matches the Herdr workspace name (creates it if missing), opens a new pane at the repository root, starts OpenCode, and submits once Herdr reports it ready. Requires `opencode` on PATH. Setup does not switch focus; failures retain the queue and leave created panes open for inspection.
+- Requires Neovim running inside Herdr and `herdr` on `PATH` for sending. Capture and queue editing work without Herdr. No extra plugin is required.
+- The queue is `agent-comments.md` at the Git checkout root containing Neovim's working directory (`:pwd`), or in that directory outside Git. A local `.git/info/exclude` rule keeps it out of Git without changing tracked ignore files. Existing state-directory queues migrate automatically if the root file does not exist. Code and line numbers are snapshots, not live annotations.
+- After Herdr acknowledges submission (not task completion), the batch is archived as `sent-*.md` under `stdpath('state')/agent-comments/<checkout-hash>/` with target and timestamp. The root queue and any edits remain untouched until you manually flush. For failed or uncertain sends, check the agent before retrying to avoid duplicates.
 
 ### Git
 - `:GitBaseMain`: compare Gitsigns gutter markers and hunks against local `main` in all open and future buffers.
