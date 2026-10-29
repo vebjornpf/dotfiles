@@ -52,7 +52,7 @@ local function assign_ids(path, reserve)
         counter = index
         next_id = math.max(next_id, tonumber(stored))
       end
-      local id = line:match '^## C(%d+) — .+:%d+%-%d+$'
+      local id = line:match '^## C(%d+) — .+'
       local legacy = line:match '^## (.+:%d+%-%d+)$'
       if id then
         next_id = math.max(next_id, tonumber(id) + 1)
@@ -84,7 +84,7 @@ local reply_instructions = [[
 # Reply instructions
 
 Respond to each comment separately, in queue order, using its exact ID (C1, C2, etc.).
-Use a heading such as "C2 — src/auth.lua:61-63" so I can reference it in follow-ups.
+Use a heading such as "C2 — src/auth.lua:61-63" or "C3 — Files and directories" so I can reference it in follow-ups.
 Under each heading:
 - Briefly quote or restate my comment.
 - Answer directly in plain language. Treat questions as questions, not automatic requests to change code.
@@ -93,6 +93,7 @@ Under each heading:
 Keep explanations concise but understandable. Do not combine answers to different IDs.
 Finish with unresolved questions or decisions, labeled with their comment IDs, only if any remain.
 Code and line numbers are snapshots: check the current files before making changes.
+File and directory comments refer to whole paths, without code snapshots: inspect their current contents as needed.
 ]]
 
 local function run(args, callback, timeout)
@@ -145,6 +146,10 @@ local function start_agent(root, workspace, panes, callback)
 end
 
 function M.add()
+  if vim.bo.filetype == 'NvimTree' then
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'nx', false)
+    return M.add_tree()
+  end
   local file = vim.api.nvim_buf_get_name(0)
   if file == '' or vim.bo.buftype ~= '' then return notify 'Select code in a named file first.' end
   local path, root = queue()
@@ -169,6 +174,43 @@ function M.add()
     local entry = { '', '## C' .. id .. ' — ' .. location, '', fence .. language }
     vim.list_extend(entry, code)
     vim.list_extend(entry, { fence, '', '**Comment:** ' .. comment, '' })
+    vim.fn.writefile(entry, path, 'a')
+    vim.cmd 'checktime'
+    notify('Added C' .. id .. ': ' .. location)
+  end)
+end
+
+function M.add_tree()
+  local api = require 'nvim-tree.api'
+  local nodes = api.marks.list()
+  if #nodes == 0 then
+    local node = api.tree.get_node_under_cursor()
+    if not node or not node.absolute_path or node.name == '..' then return notify 'Select a file or directory first.' end
+    nodes = { node }
+  end
+  table.sort(nodes, function(a, b) return a.absolute_path < b.absolute_path end)
+
+  local path, root = queue()
+  local targets = {}
+  for _, node in ipairs(nodes) do
+    local relative = vim.fs.relpath(root, node.absolute_path) or node.absolute_path
+    local kind = vim.fn.isdirectory(node.absolute_path) == 1 and 'Directory' or 'File'
+    targets[#targets + 1] = kind .. ': `' .. relative .. '`'
+  end
+  local location = #targets == 1 and targets[1] or 'Files and directories'
+  vim.ui.input({ prompt = 'Comment: ' }, function(comment)
+    if not comment or comment:match '^%s*$' then return end
+    if sending or modified(path) then return notify 'Save the queue and wait for any send to finish first.' end
+    if read(path):match '^%s*$' then
+      vim.fn.writefile({ '# Agent comments', '', 'Please address these comments. File and directory comments refer to whole paths.' }, path)
+    end
+    local id = assign_ids(path, true)
+    local entry = { '', '## C' .. id .. ' — ' .. location, '' }
+    if #targets > 1 then
+      for _, target in ipairs(targets) do entry[#entry + 1] = '- ' .. target end
+      entry[#entry + 1] = ''
+    end
+    vim.list_extend(entry, { '**Comment:** ' .. comment, '' })
     vim.fn.writefile(entry, path, 'a')
     vim.cmd 'checktime'
     notify('Added C' .. id .. ': ' .. location)

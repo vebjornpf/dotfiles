@@ -2,6 +2,7 @@ local M = {}
 
 function M.setup()
   local builtin = require 'telescope.builtin'
+  local search_rg = { 'sh', vim.fn.stdpath 'config' .. '/scripts/search-rg.sh' }
 
   vim.keymap.set('n', '<leader>gs', builtin.git_status, { desc = '[G]it [S]tatus' })
   vim.keymap.set('n', '<leader>gf', function()
@@ -37,6 +38,7 @@ function M.setup()
   vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
   vim.keymap.set('n', '<leader>sf', function()
     builtin.find_files {
+      find_command = vim.list_extend(vim.deepcopy(search_rg), { '--files', '--hidden' }),
       hidden = true,
       file_ignore_patterns = { '%.git/' },
     }
@@ -58,6 +60,14 @@ function M.setup()
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
   vim.keymap.set('n', '<leader>sg', function()
     builtin.live_grep {
+      vimgrep_arguments = vim.list_extend(vim.deepcopy(search_rg), {
+        '--color=never',
+        '--no-heading',
+        '--with-filename',
+        '--line-number',
+        '--column',
+        '--smart-case',
+      }),
       file_ignore_patterns = { '%.git/' },
       additional_args = function()
         return { '--hidden' }
@@ -80,9 +90,11 @@ function M.setup()
     }
   end, { desc = '[S]earch grep in [T]mp' })
   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-  vim.keymap.set('n', '<leader>sm', function()
+  local function unsaved_buffers()
     local buffers = {}
+    local bufnr_width = 1
     for _, info in ipairs(vim.fn.getbufinfo { buflisted = 1, bufmodified = 1 }) do
+      bufnr_width = math.max(bufnr_width, #tostring(info.bufnr))
       table.insert(buffers, { bufnr = info.bufnr, info = info, flag = ' ' })
     end
     if #buffers == 0 then
@@ -96,7 +108,7 @@ function M.setup()
       prompt_title = 'Unsaved Buffers',
       finder = require('telescope.finders').new_table {
         results = buffers,
-        entry_maker = require('telescope.make_entry').gen_from_buffer {},
+        entry_maker = require('telescope.make_entry').gen_from_buffer { bufnr_width = bufnr_width },
       },
       sorter = conf.generic_sorter {},
       previewer = previewers.new_buffer_previewer {
@@ -109,16 +121,20 @@ function M.setup()
         end,
       },
     }):find()
-  end, { desc = '[S]earch [M]odified buffers' })
+  end
+  vim.keymap.set('n', '<leader>sm', unsaved_buffers, { desc = '[S]earch [M]odified buffers' })
+  vim.keymap.set('n', '<leader>bu', unsaved_buffers, { desc = '[B]uffers: [U]nsaved' })
   vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
   vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
-  vim.keymap.set('n', '<leader><leader>', function()
+  local function all_buffers()
     builtin.buffers {
       sort_mru = true,
       sort_lastused = true,
     }
-  end, { desc = '[ ] Find existing buffers' })
+  end
+  vim.keymap.set('n', '<leader><leader>', all_buffers, { desc = '[ ] Find existing buffers' })
+  vim.keymap.set('n', '<leader>ba', all_buffers, { desc = '[B]uffers: [A]ll' })
 
   vim.keymap.set('n', '<leader>/', function()
     builtin.current_buffer_fuzzy_find {

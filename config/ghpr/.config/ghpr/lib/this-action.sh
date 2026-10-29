@@ -6,9 +6,10 @@ GHPR_HOME="${GHPR_HOME:-$HOME/.config/ghpr}"
 
 usage() {
   cat <<'EOF'
-Usage: ghpr this [open | <number> <open|checkout|cp>]
+Usage: ghpr this [list | open | <number> <open|checkout|cp>]
 
 With no arguments, open the current repository's PR picker.
+`list` prints open PR numbers, authors, and titles in the current repository.
 `open` opens the current repository's PR page in the browser.
 Tab after `ghpr this ` fetches open PRs; select a PR, then Tab to choose:
   open      open the PR in the browser
@@ -26,6 +27,16 @@ fi
 
 if (( $# == 1 )) && [[ "$1" == open ]]; then
   gh pr list --web
+  exit 0
+fi
+
+if (( $# == 1 )) && [[ "$1" == list ]]; then
+  bash "$GHPR_HOME/lib/query.sh" this | {
+    printf '%-8s %-20s %s\n' 'NUMBER' 'AUTHOR' 'TITLE'
+    while IFS=$'\t' read -r number repo author updated state title url; do
+      printf '%-8s %-20s %s\n' "#$number" "$author" "$title"
+    done
+  }
   exit 0
 fi
 

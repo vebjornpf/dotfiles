@@ -34,32 +34,15 @@ export GHPR_HOME="$root/config/ghpr/.config/ghpr"
 
 fail() { print -u2 -r -- "FAIL: $*"; exit 1; }
 
-local REPLY line
-for width in 12 30 79; do
-  _ghpr_completion_wrap 'Branch: fix/a-very-long-branch-name-without-spaces' "$width" '     '
-  for line in "${(@f)REPLY}"; do
-    (( ${(m)#line} <= width )) || fail "line exceeds $width columns: $line"
-  done
-done
-_ghpr_completion_wrap 'Unicode: 日本語 café' 18 '     '
-for line in "${(@f)REPLY}"; do
-  (( ${(m)#line} <= 18 )) || fail 'Unicode display width'
-done
-print 'PASS: long words and Unicode wrap within the display width'
-
+local line expected='123,124'
 compadd() {
-  [[ "$*" == '-l -V ghpr-pull-requests -d displays -- 123 124' ]] || fail "completion values: $*"
-  [[ "${(j:,:)prs}" == '123,124' ]] || fail 'update ordering'
-  [[ "$displays[1]" == '123  Fix authentication'* ]] || fail 'title'
-  for field in 'Author: alice' 'State: open' 'Branch:' 'Updated: 2026-10-21'; do
-    [[ "$displays[1]" == *"$field"* ]] || fail "missing $field"
-  done
-  [[ "$displays[2]" == *'State: draft'* ]] || fail 'draft state'
-  [[ "$displays[2]" == *'Branch: deps/update'* ]] || fail 'source branch'
+  [[ "$*" == '-- list' ]] && return 0
+  [[ "$*" == '-U -l -V ghpr-pull-requests -X '* ]] || fail "completion options: $*"
+  [[ "${(j:,:)prs}" == "$expected" ]] || fail "completion values: ${(j:,:)prs}"
+  [[ "$header" == 'NUMBER'*'AUTHOR'*'TITLE' ]] || fail 'column headers'
   for display in "${displays[@]}"; do
-    for line in "${(@f)display}"; do
-      (( ${(m)#line} < COLUMNS )) || fail "horizontal overflow: $line"
-    done
+    [[ "$display" != *$'\n'* ]] || fail 'multiline row'
+    [[ "$display" == '#123 '*'alice '*'Fix authentication'* || "$display" == '#124 '*'bob '*'An older PR' ]] || fail "row: $display"
   done
 }
 
@@ -67,11 +50,28 @@ COLUMNS=40
 CURRENT=3
 words=(ghpr this '')
 _ghpr
-print 'PASS: stacked PR details and number-only completion'
+print 'PASS: table rows and number-only completion'
 CURRENT=4
 words=(ghpr this checkout '')
 _ghpr
 print 'PASS: action-first completion'
+
+CURRENT=3
+for search in alice ALICE authentication '#123' 123 'alice                Fix'; do
+  PREFIX="$search"
+  SUFFIX=''
+  words=(ghpr this "$search")
+  expected=123
+  _ghpr
+done
+PREFIX=bob
+expected=124
+_ghpr
+PREFIX=not-found
+expected=''
+_ghpr || true
+PREFIX=''
+print 'PASS: case-insensitive matching across number, author, and title'
 
 rows=$(bash "$GHPR_HOME/lib/query.sh" this)
 for line in "${(@f)rows}"; do
@@ -80,3 +80,11 @@ for line in "${(@f)rows}"; do
   [[ "$fields[7]" == https://* ]] || fail 'existing URL field changed'
 done
 print 'PASS: other current-repo query consumers retain their seven fields'
+
+listing=$(bash "$GHPR_HOME/bin/ghpr" this list)
+[[ "$listing" == 'NUMBER'*'AUTHOR'*'TITLE'* ]] || fail 'list headers'
+[[ "$listing" == *'#123'*'alice'*'Fix authentication timeout'* ]] || fail 'list number, author, and title'
+[[ "$listing" == *'#124'*'bob'*'An older PR'* ]] || fail 'list includes drafts'
+[[ "$listing" != *'https://'* ]] || fail 'list contains unwanted URL'
+[[ "${${(f)listing}[2]}" == '#123'* ]] || fail 'list update ordering'
+print 'PASS: current-repo list shows PR numbers, authors, and titles'

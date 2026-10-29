@@ -3,11 +3,12 @@ local M = {}
 function M.which_key_spec()
   return {
     { '<leader>a', group = '[A]gent', mode = { 'n', 'x' } },
+    { '<leader>b', group = '[B]uffers' },
     { '<leader>g', group = '[G]it' },
     { '<leader>mp', group = '[M]arkdown [P]review' },
     { '<leader>o', group = '[O]pen' },
     { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
-    { '<leader>t', group = '[T]oggle' },
+    { '<leader>t', group = '[T]abs / toggles' },
     { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
     { 'gr', group = 'LSP Actions', mode = { 'n' } },
     { 'I', group = 'Block: insert at start', mode = { 'x' } },

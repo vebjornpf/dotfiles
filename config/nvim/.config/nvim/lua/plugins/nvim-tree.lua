@@ -22,6 +22,7 @@ return {
         map('t', api.node.open.tab, 'Open: New Tab')
          map('gh', api.node.open.horizontal, 'Open: Horizontal Split')
          map('gv', api.node.open.vertical, 'Open: Vertical Split')
+          map('<leader>ac', require('features.agent_comments').add_tree, 'Agent: comment on files or directories')
          map('O', function()
            local node = api.tree.get_node_under_cursor()
            if node and node.absolute_path then require('config.file_handlers').open(node.absolute_path) end

@@ -11,6 +11,7 @@ Usage: ghpr [command]
 Commands:
   ghpr        open my pull requests picker
   ghpr this   open current repo pull requests picker and locally check out the selected PR branch
+  ghpr this list              list current repo PR numbers, authors, and titles
   ghpr this open              open the current repo pull requests page in the browser
   ghpr this <number> open      open a current repo pull request in the browser
   ghpr this <number> checkout  locally check out a current repo pull request

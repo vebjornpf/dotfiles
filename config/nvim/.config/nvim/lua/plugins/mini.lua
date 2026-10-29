@@ -19,7 +19,10 @@ return {
       ---@diagnostic disable-next-line: duplicate-set-field
       statusline.section_location = function() return '%2l:%-2v' end
       ---@diagnostic disable-next-line: duplicate-set-field
-      statusline.section_filename = function() return '%t%m%r' end
+      statusline.section_filename = function()
+        local unsaved = #vim.fn.getbufinfo { buflisted = 1, bufmodified = 1 }
+        return '%t%m%r  ' .. require('features.git').base_label() .. (unsaved > 0 and string.format('  Unsaved: %d', unsaved) or '')
+      end
     end,
   },
 }

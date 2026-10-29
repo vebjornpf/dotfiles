@@ -1,16 +1,32 @@
 local M = {}
+local comparison_base = 'index'
+
+function M.base_label()
+  return 'Base: ' .. comparison_base
+end
+
+local function change_base(base)
+  require('gitsigns').change_base(base, true, vim.schedule_wrap(function(err)
+    if err then
+      vim.notify('Could not change Git comparison base: ' .. tostring(err), vim.log.levels.ERROR)
+      return
+    end
+    comparison_base = base or 'index'
+    vim.cmd.redrawstatus()
+  end))
+end
 
 function M.setup_commands()
   vim.api.nvim_create_user_command('GitBaseMain', function()
-    require('gitsigns').change_base('main', true)
+    change_base 'main'
   end, { desc = 'Compare all buffers against local main' })
 
   vim.api.nvim_create_user_command('GitBaseOriginMain', function()
-    require('gitsigns').change_base('origin/main', true)
+    change_base 'origin/main'
   end, { desc = 'Compare all buffers against cached origin/main' })
 
   vim.api.nvim_create_user_command('GitBaseReset', function()
-    require('gitsigns').reset_base(true)
+    change_base(nil)
   end, { desc = 'Reset all buffers to the Git index comparison' })
 end
 

@@ -9,12 +9,13 @@
 ## Layout
 - `init.lua`: startup entrypoint.
 - `lua/config/options.lua`: core editor options.
-- `lua/config/tabline.lua`: short tab labels for filenames and Diffview.
+- `lua/config/tabline.lua`: custom tab names, with filename and Diffview fallbacks.
 - `lua/config/keymaps.lua`: base keymaps and diagnostic behavior.
 - `lua/config/autocmds.lua`: autocmds such as yank highlight and Kotlin package boilerplate.
 - `lua/config/lazy.lua`: bootstraps and configures `lazy.nvim`.
 - `lua/features/`: repo-level behavior split by concern.
 - `lua/plugins/`: one plugin spec file per feature or plugin group.
+- `scripts/search-rg.sh`: ripgrep wrapper that adds ignored `.env` and `.env.*` files to normal Telescope searches.
 - `lazy-lock.json`: pinned plugin versions.
 
 ## Configuration Model
@@ -33,6 +34,7 @@
 
 ## Features
 - UI: `features/ui.lua` adds the smart `nvim-tree` toggle and which-key group labels.
+- Tabs: `features/tabs.lua` creates and renames named tabs and provides a Telescope tab picker.
 - Search: `features/search.lua` defines Telescope pickers for files, grep, buffers, commands, and Neovim config files.
 - Personal shortcuts: `features/shortcuts.lua` opens `neovim.md` and searches Markdown files under `~/.config/shortcuts/`, managed by the `shortcuts` Stow package. Opening notes keeps the file tree rooted in your project.
 - LSP: `features/lsp.lua` adds buffer-local LSP actions, Telescope-powered symbol/navigation pickers, and inlay-hint toggling.
@@ -52,7 +54,15 @@
 - `<Esc><Esc>` in terminal mode: leave terminal-insert mode.
 - `<C-h>`, `<C-j>`, `<C-k>`, `<C-l>`: move between windows.
 - `<leader>wt`: move the current window to an existing tab, prompting for its tab number.
-- Window headers, tab labels, and the statusline show filenames instead of paths; modified files have a marker. Diffview panels and tabs show `Diffview`.
+- Window headers, unnamed tab labels, and the statusline show filenames instead of paths; modified files have a marker. Diffview panels and unnamed Diffview tabs show `Diffview`.
+- The statusline shows `Unsaved: N` when listed buffers have unsaved changes, including unnamed buffers. Use `<leader>sm` to list them; the count disappears when none remain.
+
+### Tabs
+- `<leader>tn`: enter a name to create and switch to a new tab; cancel or leave empty to do nothing.
+- `<leader>tr`: rename the current tab; an empty name restores the filename label.
+- `<leader>tt`: search open tabs by name with Telescope; press Enter to switch.
+- Custom tab names stay fixed when switching files and last for the current Neovim session.
+- `gt` / `gT`: next / previous tab. Unnamed tabs keep their active filename labels.
 
 ### File Browsing
 - `<leader>e`: smart `nvim-tree` toggle or focus current file in the tree.
@@ -77,12 +87,12 @@
 ### Search And Picking
 - In Telescope file pickers, `<CR>` opens the selected file in the current window; `<C-t>` opens it in a new tab (`<C-v>` in a vertical split, `<C-x>` in a horizontal split).
 - In Telescope normal mode (`<Esc>` from the search prompt), `gh` opens a horizontal split and `gv` opens a vertical split.
-- `<leader>sf`: find files including hidden files, respecting ignore rules and excluding `.git/`.
+- `<leader>sf`: find files including hidden files, respecting ignore rules except for `.env` and `.env.*`, and excluding `.git/`.
 - `<leader>sF`: find all files, including hidden and ignored.
 - `<leader>st`: find files under `./tmp`.
-- `<leader>sg`: live grep including hidden files, respecting ignore rules and excluding `.git/`.
+- `<leader>sg`: live grep including hidden files, respecting ignore rules except for `.env` and `.env.*`, and excluding `.git/`.
 - `<leader>sG`: live grep including hidden files, respecting ignore rules without the explicit `.git/` exclusion.
-- Hidden files such as `.env` are included unless ignored; build output is excluded when covered by ignore rules.
+- Normal file/text searches include `.env` and `.env.*` even when ignored (including inside ignored directories); other ignored files and build output stay excluded. Environment files can contain secrets: take care when sharing previews or results. These searches require `rg` (ripgrep).
 - `<leader>sT`: live grep under `./tmp`.
 - `<leader>sw`: grep the current word or selection.
 - `<leader>ss`: list Telescope pickers.
@@ -92,6 +102,8 @@
 - `<leader>s.`: recent files.
 - `<leader>sc`: commands.
 - `<leader><leader>`: buffers.
+- `<leader>ba`: all open buffers (same as `<leader><leader>`).
+- `<leader>bu`: unsaved buffers (same as `<leader>sm`), with previews of current in-memory contents.
 - `<leader>/`: fuzzy search inside the current buffer in a 98%-wide, 95%-tall picker, with line-numbered matches on the left and surrounding code preview on the right.
 - `<leader>s/`: live grep in open files.
 - `<leader>sn`: search Neovim config files.
@@ -116,6 +128,8 @@
 ### Agent Comments
 - `<leader>a`: which-key group labeled **Agent**, available in normal and visual mode.
 - Select code visually, then `<leader>ac`: enter a one-line comment. The selection, file path, and original line range append to a Markdown queue; source files are untouched.
+- In `nvim-tree`, `<leader>ac` comments on the file or directory under the cursor. Mark several items with `m` first to add one shared comment listing all marked paths instead. Paths are relative to the queue's repository root where possible, with no tree text, code snapshot, or line numbers. Marks are kept; clear them with `:lua require('nvim-tree.api').marks.clear()` when finished. Review and send through the same queue shortcuts below.
+- The tree comment shortcut also works from visual mode; visual highlighting does not select multiple paths. Use `m` marks for multiple files or directories.
 - Each comment gets a stable ID (`C1`, `C2`, etc.) in its heading. Existing unnumbered entries receive IDs on open/add/send. Keep IDs and the `next-comment-id` metadata intact when editing: reordering/deleting comments does not renumber or reuse IDs. Flushing starts a fresh batch at `C1`.
 - Sending appends reply instructions asking for a separate answer under each matching ID/path heading, with the original question, a direct answer, changes/verification where applicable, and explicit decisions needed. Questions are not treated as automatic change requests. Instructions are included in sent archives, not added to the queue. Reference follow-ups by ID, e.g. "For C2, use five minutes."
 - `<leader>aq`: open the queue to review, edit, or remove entries. Save edits with `:w` before adding or sending comments.
@@ -131,6 +145,7 @@
 - `:GitBaseMain`: compare Gitsigns gutter markers and hunks against local `main` in all open and future buffers.
 - `:GitBaseOriginMain`: use cached `origin/main` instead; fetch separately to refresh it.
 - `:GitBaseReset`: restore the normal staging-area comparison in all buffers. Base choices last for the current Neovim session and include unsaved edits; they compare directly against the chosen branch tip, not the merge base.
+- The statusline shows the comparison selected through these commands: `Base: index` (default), `Base: main`, or `Base: origin/main`. It updates after a successful change; this is the Gitsigns gutter/hunk comparison, not the Diffview comparison.
 - `<leader>gs`: Telescope git status.
 - `<leader>gf`: Telescope tracked files changed against local `main`, including staged and unstaged changes, with a diff preview. Deleted and untracked files are excluded. Open a result with `<CR>`, `<C-t>`, `<C-v>`, or `<C-x>`. Save buffers first; comparisons use files on disk.
 - `<leader>gd`: open Diffview for uncommitted changes (staged and unstaged) in the working tree.

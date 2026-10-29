@@ -10,35 +10,6 @@ if [[ -d "$ghpr_bin_dir" && ":$PATH:" != *":$ghpr_bin_dir:"* ]]; then
   path=("$ghpr_bin_dir" $path)
 fi
 
-# Wrap display text without changing the value inserted by completion.
-_ghpr_completion_wrap() {
-  local text="${1//[[:cntrl:]]/ }" word char line="${3-}" indent='     '
-  local -i width=$2
-  (( width > ${#indent} )) || indent=''
-  REPLY=''
-
-  for word in ${=text}; do
-    if [[ -n "${line// /}" ]]; then
-      if (( ${(m)#line} + 1 + ${(m)#word} <= width )); then
-        line+=" $word"
-        continue
-      fi
-      REPLY+="$line"$'\n'
-      line="$indent"
-    fi
-
-    # Also break long unspaced values, such as branch names.
-    for char in ${(s::)word}; do
-      if (( ${(m)#line} + ${(m)#char} > width )); then
-        REPLY+="$line"$'\n'
-        line="$indent"
-      fi
-      line+="$char"
-    done
-  done
-  REPLY+="$line"
-}
-
 _ghpr() {
   local -a top_level sync_targets mine_commands this_commands
 
@@ -54,26 +25,26 @@ _ghpr() {
 
   case "${words[2]-}" in
     this)
+      if (( CURRENT == 3 )); then
+        compadd -- list
+      fi
       if (( CURRENT == 4 )) && [[ "${words[3]-}" == <-> ]]; then
         compadd -- "${this_commands[@]}"
       elif (( CURRENT == 3 )) || { (( CURRENT == 4 )) && [[ "${words[3]-}" == open || "${words[3]-}" == checkout || "${words[3]-}" == cp ]]; }; then
-        local number repo author updated state title url branch display field REPLY
-        local -i width=$(( COLUMNS > 1 ? COLUMNS - 1 : 1 ))
+        local number repo author updated state title url branch display
+        local search="${PREFIX-}${SUFFIX-}" header
         local -a prs displays
 
         while IFS=$'\t' read -r number repo author updated state title url branch; do
+          printf -v display '%-8s %-20s %s' "#$number" "$author" "$title"
+          [[ "${display:l}" == *"${search:l}"* ]] || continue
           prs+=("$number")
-          _ghpr_completion_wrap "$title" "$width" "$number "
-          display="$REPLY"
-          for field in "Author: $author" "State: $state" "Branch: $branch" "Updated: ${updated%%T*}"; do
-            _ghpr_completion_wrap "$field" "$width" '     '
-            display+=$'\n'"$REPLY"
-          done
-          displays+=("$display"$'\n')
+          displays+=("$display")
         done < <(bash "$GHPR_HOME/lib/query.sh" this-completions 2>/dev/null)
 
-        # One multiline display per match; preserve the query's update ordering.
-        compadd -l -V ghpr-pull-requests -d displays -- "${prs[@]}"
+        # Match the whole displayed row, but replace the typed search with only the number.
+        printf -v header '%-8s %-20s %s' NUMBER AUTHOR TITLE
+        (( ${#prs} )) && compadd -U -l -V ghpr-pull-requests -X "$header" -d displays -- "${prs[@]}"
       fi
       ;;
     sync)
