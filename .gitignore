@@ -17,6 +17,11 @@ bun.lock
 # Neovim
 lazy-lock.json
 
+# Local application files
+/config/herdr/.config/herdr/.plugins.lock
+/config/herdr/.config/herdr/session.json
+/config/opencode/.config/opencode/cli.json
+
 # tmux plugins (managed by TPM at runtime)
 config/tmux/.config/tmux/plugins/
 
