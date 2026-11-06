@@ -3,6 +3,13 @@
 Herdr is configured as a stow-managed package with a fuzzy project workspace
 picker.
 
+## Colors
+
+`config.toml` overrides the built-in Catppuccin Mocha palette with Frappé colors
+to match Neovim and OpenCode. Sidebar and panel backgrounds are opaque so the
+outer terminal's background does not bleed through. Reload via Herdr's global
+menu after changing colors.
+
 ## Usage
 
 - `Ctrl-b w` - switch between workspaces

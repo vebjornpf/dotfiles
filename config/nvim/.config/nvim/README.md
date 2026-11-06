@@ -239,7 +239,7 @@
 - `render-markdown.lua`: `render-markdown.nvim` for readable Markdown inside Neovim, using plain heading markers and no Nerd Font-dependent code or link icons.
 - `telescope.lua`: `telescope.nvim` plus FZF and UI-select extensions for file, grep, buffer, and LSP pickers.
 - `todo-comments.lua`: `todo-comments.nvim` for highlighting and navigating TODO-style comments.
-- `tokyonight.lua`: `tokyonight.nvim` colorscheme setup using `tokyonight-night`.
+- `catppuccin.lua`: `catppuccin/nvim` using opaque Catppuccin Frappé, matching OpenCode and Herdr, with non-italic comments.
 - `treesitter.lua`: `nvim-treesitter` parser management, including Mermaid syntax highlighting and indent support.
 - `which-key.lua`: `which-key.nvim` for keymap discovery and grouped leader-key hints.
 
