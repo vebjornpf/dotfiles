@@ -15,5 +15,29 @@ if ! command -v gh >/dev/null 2>&1; then
   exit 1
 fi
 
-gh pr review "$pr_number" -R "$repo" --approve --body 'LGTM'
-gh pr merge "$pr_number" -R "$repo"
+pause_and_fail() {
+  printf '\nPress Enter to return to gh-dash.'
+  read -r _ </dev/tty || true
+  exit 1
+}
+
+if ! gh pr review "$pr_number" -R "$repo" --approve --body 'LGTM'; then
+  printf '\nApproval failed.\n'
+  pause_and_fail
+fi
+printf 'Approval succeeded.\n'
+
+if ! gh pr merge "$pr_number" -R "$repo"; then
+  printf '\nMerge failed.\n'
+  gh pr view "$pr_number" -R "$repo" --json mergeStateStatus,reviewDecision \
+    --template 'Merge state: {{.mergeStateStatus}}\nReview decision: {{.reviewDecision}}\n' || true
+  printf '\nChecks:\n'
+  gh pr checks "$pr_number" -R "$repo" || true
+  failed_checks=$(gh pr checks "$pr_number" -R "$repo" --json name,bucket,link \
+    --jq '.[] | select(.bucket == "fail" or .bucket == "cancel") | "  \(.name)\n    \(.link)\n"' || true)
+  if [[ -n "$failed_checks" ]]; then
+    printf '\nFailed checks:\n%s\n' "$failed_checks"
+  fi
+  printf '\nPR remains open. Your approval is saved.\n'
+  pause_and_fail
+fi

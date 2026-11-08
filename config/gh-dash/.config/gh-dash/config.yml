@@ -95,6 +95,9 @@ keybindings:
         - key: M
           name: Approve and merge PR
           command: ~/.config/gh-dash/bin/approve-and-merge {{.RepoName}} {{.PrNumber}}
+        - key: f1
+          name: PR search help
+          command: ~/.config/gh-dash/bin/search-help
 repoPaths: {}
 theme:
     ui:

@@ -1,0 +1,52 @@
+PR search help
+
+Press / to edit the current section's search, then Enter to run it.
+Edits only last until gh-dash closes. is:pr is always added.
+Existing filters still apply: remove author:@me to search other people's PRs.
+Inside a repository, a repo: filter is added automatically (toggle with t).
+
+Text search
+  login in:title          Search PR titles
+  timeout in:body         Search PR descriptions
+  regression in:comments  Search comments
+  login in:title,body     Search titles and descriptions
+  "exact phrase"          Match an exact phrase
+
+People
+  author:@me              Your PRs
+  author:<user>           PRs by a user
+  -author:<user>          Exclude a user
+  review-requested:@me    Awaiting your review
+  reviewed-by:@me         PRs you reviewed
+  involves:@me            PRs involving you
+  assignee:@me            PRs assigned to you
+
+State
+  is:open                 Open PRs
+  is:closed               Closed PRs
+  is:merged               Merged PRs
+  draft:false             Exclude drafts
+  review:approved         Approved PRs
+  review:changes_requested
+                          Changes requested
+  status:failure          Failing checks
+
+Location
+  repo:<owner>/<repo>     One repository
+  org:<org>               One organization
+  head:<branch>           Source branch
+  base:main               Target branch
+  label:<label>           By label
+
+Dates
+  updated:>=2026-10-01    Updated since a date
+  created:<2026-01-01     Created before a date
+  merged:2026-10-01..2026-10-31
+                          Merged in a date range
+
+Combine
+  is:open draft:false login in:title
+  is:merged author:@me merged:>=2026-10-01
+
+Full reference:
+  https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests

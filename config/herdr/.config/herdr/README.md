@@ -21,6 +21,11 @@ menu after changing colors.
 - `Ctrl-Alt-Up` / `Ctrl-Alt-Down` - move to the previous or next agent
 - `Ctrl-Shift-Alt-S` - show status for all agents
 - `Ctrl-b g` - open Herdr's session navigator
+- `Ctrl-b Shift-r` - rename the current workspace
+- `Ctrl-b u` - open a visible URL
+- `Ctrl-b Shift-u` - copy a visible URL, path, SHA, or other token (needs `wl-copy`, `xclip`, or `xsel`).
+  Lines shaped like `$ <command>` copy the command without the `$ ` prompt
+  (pattern in `plugins/config/rmarganti.herdr-pluck/config.toml`)
 - `Ctrl-b t` - fuzzy-pick a tab in the current workspace (searches pane titles too)
 - `Ctrl-b Shift-o` - fuzzy-pick a project and focus or create its workspace
 

@@ -44,7 +44,7 @@ next_tab = "ctrl+alt+l"
 open_notification_target = "prefix+shift+o"
 previous_agent = "ctrl+alt+up" # previous agent; shown in prefix help
 next_agent = "ctrl+alt+down" # next agent; shown in prefix help
-rename_workspace = ""
+rename_workspace = "prefix+shift+r"
 
 [[keys.command]]
 key = "ctrl+shift+alt+s"
@@ -83,6 +83,12 @@ key = "prefix+u"
 type = "plugin_action"
 command = "rmarganti.herdr-pluck.open-url"
 description = "open visible URL"
+
+[[keys.command]]
+key = "prefix+shift+u"
+type = "plugin_action"
+command = "rmarganti.herdr-pluck.pluck"
+description = "copy visible token"
 
 [ui]
 agent_panel_sort = "spaces"

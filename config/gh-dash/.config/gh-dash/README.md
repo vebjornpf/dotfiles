@@ -24,7 +24,13 @@ Press `d` to review the selected pull request in Hunk using the official
 
 Press `M` to approve the PR with `LGTM`, then use the same interactive
 `gh pr merge` flow as gh-dash's `m` key. Cancelling the merge leaves the
-approval in place.
+approval in place. If approval or merge fails, the script shows the error,
+merge state, checks, and links to failed checks, then waits for Enter.
+
+## Search help
+
+Press `F1` in the PRs view to show a search cheat sheet. Add more examples to
+`help/pr-search.txt`.
 
 ## Requirements
 

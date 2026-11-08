@@ -53,7 +53,7 @@ end
 
 function M.setup()
   vim.api.nvim_create_user_command('LspClients', M.list_clients, { desc = 'List LSP clients attached to the current buffer' })
-  vim.api.nvim_create_user_command('DiagnosticsToggle', M.toggle_diagnostics, { desc = 'Toggle warning display in all buffers for this session' })
+  vim.api.nvim_create_user_command('ToggleDiagnostic', M.toggle_diagnostics, { desc = 'Toggle warning display in all buffers for this session' })
 end
 
 function M.on_attach(event)

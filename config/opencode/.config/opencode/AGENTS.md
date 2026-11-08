@@ -7,6 +7,7 @@
 # Command formatting
 
 - Write commands ready to run as-is whenever possible.
+- When giving the user shell commands to copy, put them in a fenced `sh` block and prefix each command with `$ ` (one logical command per line, explanations outside the block). The prefix lets Herdr Pluck (`Ctrl-b Shift-u`) copy the command without it.
 - If a value must be supplied by the user, use a short inline placeholder: `<word>` (e.g. `<org>`, `<user>`, `<repo>`, `<token>`, `<file>`).
 - Never use `export VAR="..."` prefixes.
 

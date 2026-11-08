@@ -6,34 +6,8 @@ function M.setup()
 
   vim.keymap.set('n', '<leader>gs', builtin.git_status, { desc = '[G]it [S]tatus' })
   vim.keymap.set('n', '<leader>gf', function()
-    vim.fn.system({ 'git', 'rev-parse', '--verify', 'main^{commit}' })
-    if vim.v.shell_error ~= 0 then
-      vim.notify('Git main branch not found in the current repository', vim.log.levels.ERROR)
-      return
-    end
-
-    local cwd = vim.fn.systemlist({ 'git', 'rev-parse', '--show-toplevel' })[1]
-    local preview_utils = require 'telescope.previewers.utils'
-
-    builtin.git_files {
-      cwd = cwd,
-      prompt_title = 'Files changed against main (including uncommitted)',
-      git_command = { 'git', '-c', 'core.quotepath=false', 'diff', '--name-only', '--diff-filter=ACMRT', 'main', '--' },
-      previewer = require('telescope.previewers').new_buffer_previewer {
-        title = 'Diff against main',
-        get_buffer_by_name = function(_, entry) return entry.value end,
-        define_preview = function(self, entry)
-          preview_utils.job_maker({ 'git', '--no-pager', 'diff', '--no-ext-diff', '--no-color', 'main', '--', entry.value }, self.state.bufnr, {
-            cwd = cwd,
-            bufname = self.state.bufname,
-            callback = function(bufnr)
-              if vim.api.nvim_buf_is_valid(bufnr) then preview_utils.highlighter(bufnr, 'diff') end
-            end,
-          })
-        end,
-      },
-    }
-  end, { desc = '[G]it changed [F]iles from main' })
+    require('features.git_picker').open()
+  end, { desc = '[G]it changed [F]iles against Gitsigns base' })
   vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
   vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
   vim.keymap.set('n', '<leader>sf', function()
