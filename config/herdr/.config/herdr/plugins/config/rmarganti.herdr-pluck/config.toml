@@ -1,0 +1,5 @@
+# Commands shown as `$ <command>`; copies the command without the prompt.
+[[patterns]]
+name = "shell-command"
+regex = '(?m)^[\s│┃|]*\$ (?<match>\S(?:[^\r\n│┃]*\S)?)'
+priority = 10

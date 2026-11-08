@@ -39,7 +39,7 @@
 - Personal shortcuts: `features/shortcuts.lua` opens `neovim.md` and searches Markdown files under `~/.config/shortcuts/`, managed by the `shortcuts` Stow package. Opening notes keeps the file tree rooted in your project.
 - LSP: `features/lsp.lua` adds buffer-local LSP actions, Telescope-powered symbol/navigation pickers, and inlay-hint toggling.
 - Dependency sources: `features/jar_sources.lua` reads `jar://` locations returned by Kotlin LSP into read-only buffers and reuses the originating project's Kotlin LSP client for further navigation. Requires `unzip` on `PATH`.
-- Git: `features/git.lua` wires gitsigns hunk actions and diffview shortcuts.
+- Git: `features/git.lua` wires Gitsigns comparison bases, hunk actions, and Diffview shortcuts; `features/git_picker.lua` lists changed files against the active base; `features/git_diff.lua` manages the side-by-side comparison toggle and temporary-buffer cleanup.
 - File paths: `features/file_paths.lua` adds commands to copy the current filename or path to the system clipboard.
 - Gradle: `features/gradle.lua` compiles Kotlin tests asynchronously and puts compiler errors and warnings in quickfix.
 - Agent comments: `features/agent_comments.lua` collects selected code and comments, then sends a batch to a detected Herdr agent.
@@ -109,7 +109,7 @@
 - `<leader>sn`: search Neovim config files.
 
 ### LSP
-- `:DiagnosticsToggle`: hide or show only yellow warnings (signs, underlines, inline text, and diagnostic floats) in all buffers for the current session. Errors, information, and hints keep their existing display settings. Warnings remain available in diagnostic lists; LSP servers keep running. Restarting Neovim restores the default.
+- `:ToggleDiagnostic`: hide or show only yellow warnings (signs, underlines, inline text, and diagnostic floats) in all buffers for the current session. Errors, information, and hints keep their existing display settings. Warnings remain available in diagnostic lists; LSP servers keep running. Restarting Neovim restores the default.
 - `:LspClients`: list LSP server names and client IDs attached to the current buffer, or report that none are attached.
 - `grn`: rename symbol.
 - `gra`: code action.
@@ -142,13 +142,14 @@
 - After Herdr acknowledges submission (not task completion), the batch is archived as `sent-*.md` under `stdpath('state')/agent-comments/<checkout-hash>/` with target and timestamp. The root queue and any edits remain untouched until you manually flush. For failed or uncertain sends, check the agent before retrying to avoid duplicates.
 
 ### Git
+- `:GitBasePR`: detect the checked-out GitHub PR with `gh` and compare all buffers against the merge base of `HEAD` and the PR target commit, showing PR changes plus local/unsaved edits. Resolves `pr-<number>` branches by PR number; otherwise uses the tracked remote branch name (or local branch name if there is no tracking branch). Requires authenticated `gh` and the target commit/history locally; fetch the target branch from its upstream remote first if needed. Runs without fetching automatically; failures leave the comparison unchanged. Run again after switching branches or updating the PR.
 - `:GitBaseMain`: compare Gitsigns gutter markers and hunks against local `main` in all open and future buffers.
 - `:GitBaseOriginMain`: use cached `origin/main` instead; fetch separately to refresh it.
-- `:GitBaseReset`: restore the normal staging-area comparison in all buffers. Base choices last for the current Neovim session and include unsaved edits; they compare directly against the chosen branch tip, not the merge base.
-- The statusline shows the comparison selected through these commands: `Base: index` (default), `Base: main`, or `Base: origin/main`. It updates after a successful change; this is the Gitsigns gutter/hunk comparison, not the Diffview comparison.
+- `:GitBaseReset`: restore the normal staging-area comparison in all buffers. Base choices last for the current Neovim session and include unsaved edits; `GitBaseMain` and `GitBaseOriginMain` compare directly against the chosen branch tip, not the merge base.
+- The statusline shows the comparison selected through these commands: `Base: index` (default), `Base: main`, `Base: origin/main`, or `Base: PR (<target>)`. It updates after a successful change; this is the Gitsigns gutter/hunk comparison, not the Diffview comparison.
 - `<leader>gs`: Telescope git status.
-- `<leader>gf`: Telescope tracked files changed against local `main`, including staged and unstaged changes, with a diff preview. Deleted and untracked files are excluded. Open a result with `<CR>`, `<C-t>`, `<C-v>`, or `<C-x>`. Save buffers first; comparisons use files on disk.
-- `<leader>gd`: open Diffview for uncommitted changes (staged and unstaged) in the working tree.
+- `<leader>gf`: Telescope tracked files changed against the active Gitsigns base, with diff previews. After `:GitBasePR`, lists PR changes plus local edits; after `:GitBaseReset`, lists unstaged changes against the index. Includes unsaved edits in loaded buffers (also in previews); deleted and untracked files are excluded. Open a result with `<CR>`, `<C-t>`, `<C-v>`, or `<C-x>`. The list/previews reflect the state when the picker opens; reopen after edits or base changes.
+- `<leader>gd`: open Diffview against the active Gitsigns base. By default (`:GitBaseReset`), compares against the index, with staged changes listed separately. After `:GitBasePR`, compares the working tree against the PR merge base; `:GitBaseMain` and `:GitBaseOriginMain` use their respective refs. Save edits first and reopen Diffview after changing the base.
 - `<leader>gb`: open Diffview for branch commits since diverging from `main` (`main...HEAD`); excludes uncommitted changes.
 - `<leader>gD`: close Diffview.
 - `<leader>gH`: file history in Diffview.
@@ -169,7 +170,9 @@
 - `<leader>hR`: reset buffer.
 - `<leader>hp`: preview hunk inline.
 - `<leader>hb`: blame line.
-- `<leader>hd`: diff current file side by side.
+- `<leader>hB` / `:ToggleFileBlame`: toggle whole-file blame. Press again from the file or blame pane to close the panel and return to the source window (one panel per tab).
+- `<leader>hl` / `:ToggleLineBlame`: toggle automatic inline blame beside the current line.
+- `<leader>hd`: toggle the current file's side-by-side comparison against the active Gitsigns base. Press again from either pane to close the comparison and return to the source file. Temporary comparison buffers are removed when hidden (including when the split is closed manually), unless they contain unsaved edits. The toggle refuses to close an edited comparison until you write or discard its changes.
 - `<leader>hD`: diff against index side by side.
 
 ### Formatting And Requests

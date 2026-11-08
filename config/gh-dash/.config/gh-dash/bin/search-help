@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+help_file="$(dirname "$(readlink -f "$0")")/../help/pr-search.txt"
+
+${PAGER:-less} "$help_file"
